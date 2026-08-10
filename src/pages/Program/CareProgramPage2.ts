@@ -49,7 +49,6 @@ export class CareProgramPage2 extends BasePage {
     }
 
     async clickOnViewDetails() {
-        //  await this.page.waitForTimeout(7000);
         await this.viewDetails.waitFor({
             state: 'visible'
         });

@@ -70,21 +70,15 @@ export class ProtocolPage extends BasePage {
         this.restingHoursProtocol = page.getByText(`Resting HR`).locator(`../input`)
         this.hrvProtocol = page.getByText(`HRV`).locator(`../input`)
         this.allProtocols = page.locator(`//div[contains(@class,' gap-x-3 gap-y-3')]//input`)
-
-        //
-        this.savedMessage=  page.getByText('Saved');
-
-
-
-
+        this.savedMessage = page.getByText('Saved');
     }
 
     async getHeT(): Promise<string> {
         return this.programheading.innerText();
     }
 
-    async weekSaved(): Promise<boolean>{
-       return await this.savedMessage.isVisible();
+    async weekSaved(): Promise<boolean> {
+        return await this.savedMessage.isVisible();
     }
 
     async selectPhase(phaseName: string): Promise<void> {
@@ -96,7 +90,6 @@ export class ProtocolPage extends BasePage {
     }
 
     async getModuleText(moduleName: string): Promise<string> {
-        //  await this.page.locator(`//*[contains(@style,'opacity: 1; position: relative;')]`).filter({ hasText: moduleName }).first().innerText({timeout: 2000});
         let module = await this.page.locator(`//div[contains(@class,'bg-card-nested/40 group')]`).filter({ hasText: `Module 1 · ${moduleName}` });
         if (await module.isVisible()) {
             await module.hover();
@@ -122,13 +115,6 @@ export class ProtocolPage extends BasePage {
         }
     }
 
-
-    // async getPhaseParent(phaseName: string) {
-    //      await this.page
-    //         .getByText(${phaseName},))
-    //         .locator("..");
-
-    // }
 
     async createModule(phaseName: string, moduleName: string): Promise<void> {
         await this.page.waitForLoadState('domcontentloaded')
@@ -175,9 +161,7 @@ export class ProtocolPage extends BasePage {
         await this.page.waitForLoadState('networkidle')
         await this.phaseTile.highlight();
         console.log('countIs ', await this.phaseTile.count());
-
         //  await this.selectPhase(phaseName);
-
         for (let i = 0; i < 5; i++) {
             await (await this.phaseTile).hover();
             try {
@@ -221,7 +205,6 @@ export class ProtocolPage extends BasePage {
     async createWeek(weeknumber: string, weekTitle: string, weekDescription: string, protocols: { protocolName: string; value: string }[]): Promise<void> {
         await this.page.waitForLoadState('domcontentloaded');
         await this.page.waitForLoadState('networkidle');
-
         //    let countp = await this.getProtocolCount();
         //   console.log('count is ?', countp)
         console.log('217')
@@ -242,13 +225,10 @@ export class ProtocolPage extends BasePage {
                 );
                 console.log('Filled', protocol.protocolName)
             }
-
         }
         else {
             console.log('not open')
         }
-
-
         await this.savebtn.click();
     }
 
@@ -276,10 +256,10 @@ export class ProtocolPage extends BasePage {
         const week = await this.page.locator(`//div[contains(@class,'bg-card-nested/40 group')]`).filter({ hasText: weekName });
 
         console.log(week)
-      await week.waitFor({
-        state: 'visible',
-        timeout: 3000
-    });
+        await week.waitFor({
+            state: 'visible',
+            timeout: 3000
+        });
         await week.isVisible();
         return await week.innerText();
 
