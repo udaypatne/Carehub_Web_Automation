@@ -43,8 +43,6 @@ test('verify create Program', async ({ careProgramPage2, protocolPage, page }) =
         { protocolName: `Resting HR`, value: '4' },
         { protocolName: `HRV`, value: '50' },
     ];
-
-    console.log("run45")
     await protocolPage.addWeekUnderModule(expectedModuleText);
     await protocolPage.createWeek('1', expectedWeekText, 'description', protocols);
     expect(await protocolPage.weekSaved()).toBeTruthy();
