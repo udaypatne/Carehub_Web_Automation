@@ -41,7 +41,7 @@ test('Verify tab visibility for Physician staff role', async ({ loginPage, dashb
         'Care Programs',
         'Onboarding'
     ]
-    await loginPage.login(process.env.PHYSICIAN!, process.env.PASSWORD!)
+    await loginPage.login(process.env.PHYSICIAN_ROLE!, process.env.PASSWORD!)
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
     let actualUrl = await loginPage.getLoginPageUrl();
@@ -152,7 +152,7 @@ test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashb
         'Integrations',
         'Organization',
     ]
-    await loginPage.login(process.env.TECH_ADMIN!, process.env.PASSWORD!)
+    await loginPage.login(process.env.TECHADMIN_ROLE!, process.env.PASSWORD!)
     await page.waitForURL('/dashboard/integrations')
     await loginPage.disableTutorial();
     let actualUrl = await loginPage.getLoginPageUrl();
