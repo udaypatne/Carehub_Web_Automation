@@ -1,22 +1,22 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
 
-const ENV=process.env.ENV || "qa"
-dotenv.config({path:`config/.env.${ENV}`})
+const ENV = process.env.ENV || "qa"
+dotenv.config({ path: `config/.env.${ENV}` })
 
 export default defineConfig({
   testDir: './tests',
   /* Run tests in files in parallel */
 
-  timeout: 120 * 1000,
+
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: 2,
-  
+  workers: process.env.CI ? '50%' : undefined,
+
   reporter: [
     ["list"],
     ["html", { outputFolder: "reports/html-report", open: "never" }],
@@ -25,6 +25,8 @@ export default defineConfig({
       suiteTitle: true,
     }],
   ],
+  timeout: 120 * 1000,
+  expect: { timeout: 20000 },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
