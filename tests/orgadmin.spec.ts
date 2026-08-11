@@ -2,16 +2,17 @@ import { test, expect } from '../src/fixtures/page'
 
 
 
-test.beforeEach(async ({ page ,loginPage}) => {
+test.beforeEach(async ({ page, loginPage }) => {
     await loginPage.navToLoginPage();
     loginPage.login(process.env.ORG_ADMIN!, process.env.PASSWORD!);
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
 })
 
-test('verify create Program is visible', async ({ page,careProgramPage }) => {
+test('verify create Program is visible', async ({ page, careProgramPage }) => {
     await careProgramPage.selectTab('Care Programs');
     await page.waitForLoadState('networkidle');
+    console.log(await careProgramPage.expectedUrlPath());
     await careProgramPage.expectedUrlPath();
     let createProgramBtn = await careProgramPage.careProgramBtns('Create Program');
     await expect(createProgramBtn, 'Create program button is not  be visible').toBeTruthy();
