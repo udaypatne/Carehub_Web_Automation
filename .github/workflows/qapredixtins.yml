@@ -78,16 +78,16 @@ jobs:
           path: reports/html-report/
           retention-days: 30
 
-      - name: Upload Allure Results
+      - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qa-allure-report
-          path: allure-results/
+          path: allure-report/
           retention-days: 30
 
     # ═════════════════════════════════════════════════════
-  # PIPELINE NOTIFICATION — GITHUB PAGES + EMAIL + SLACK
+  #  NOTIFICATION — GITHUB PAGES + EMAIL + SLACK
   # ═════════════════════════════════════════════════════
   notify:
     name: Publish Reports + Notify
@@ -169,8 +169,8 @@ jobs:
           sed -i "s|RUN_DATE|$(date +'%d %b %Y, %I:%M %p UTC')|g" pages-deploy/runs/${{ github.run_id }}/index.html
 
           # Copy reports into organized folders
-          cp -r all-reports/qa-html-report/ pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
-          cp -r all-reports/qa-allure-report/ pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
+          cp -r all-reports/qa-html-report/* pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
+          cp -r all-reports/qa-allure-report/* pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
           
           echo "Reports organized ✅"
           ls -la pages-deploy/runs/${{ github.run_id }}/
@@ -218,7 +218,7 @@ jobs:
             <div class="container">
               <div class="header">
                 <h1>🎭 Predixtions Automation Report</h1>
-                <p>Master Pipeline Report</p>
+                <p>Report</p>
               </div>
               <div class="body">
                 <div class="meta">
