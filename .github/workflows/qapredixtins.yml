@@ -13,7 +13,7 @@ on:
           - Prod
 
 jobs:
-  test:
+  test-qa:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     environment: ${{ github.event.inputs.environment || 'QA' }}
@@ -91,7 +91,7 @@ jobs:
   # ═════════════════════════════════════════════════════
   notify:
     name: Publish Reports + Notify
-    needs: [test]
+    needs: [test-qa]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -102,7 +102,7 @@ jobs:
       - name: Set Status Emoji
         id: status
         run: |
-          QA="${{ needs.test.result }}"
+          QA="${{ needs.test-qa.result }}"
       
 
           get_emoji() { if [ "$1" = "success" ]; then echo "✅"; elif [ "$1" = "skipped" ]; then echo "⏭️"; else echo "❌"; fi; }
@@ -169,8 +169,8 @@ jobs:
           sed -i "s|RUN_DATE|$(date +'%d %b %Y, %I:%M %p UTC')|g" pages-deploy/runs/${{ github.run_id }}/index.html
 
           # Copy reports into organized folders
-          cp -r all-reports/qa-html-report/* pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
-          cp -r all-reports/qa-allure-report/* pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
+          cp -r all-reports/qa-html-report/ pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
+          cp -r all-reports/qa-allure-report/ pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
           
           echo "Reports organized ✅"
           ls -la pages-deploy/runs/${{ github.run_id }}/
@@ -264,6 +264,6 @@ jobs:
           echo "═══════════════════════════════════════════"
           echo "       Predixtions"
           echo "═══════════════════════════════════════════"
-          echo "  QA Run:   ${{ needs.test.result }}"
+          echo "  QA Run:   ${{ needs.test-qa.result }}"
           echo "  Reports:         ${{ steps.status.outputs.report_url }}/index.html"
           echo "═══════════════════════════════════════════"        
