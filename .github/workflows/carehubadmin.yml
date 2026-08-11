@@ -1,4 +1,4 @@
-name: Predixtions
+name: Predixtions CareHub
 
 on:
   workflow_dispatch:
