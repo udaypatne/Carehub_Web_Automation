@@ -1,0 +1,64 @@
+Login button clicked
+countIs  0
+bbbb Module 1 · Automation Module
+Automation Modulenutri
+— min
+edit
+week
+action
+week hover 105
+week clicked 109
+217
+223 description
+Filling protocol: Steps / day = 1111
+Protocol: Steps / day | Count: 1 | Value: 1111
+Filled Steps / day
+Filled Steps / day
+Filling protocol: Activity min / wk = 35
+Protocol: Activity min / wk | Count: 1 | Value: 35
+Filled Activity min / wk
+Filled Activity min / wk
+Filling protocol: Daily calories = 2000
+Protocol: Daily calories | Count: 1 | Value: 2000
+Filled Daily calories
+Filled Daily calories
+Filling protocol: Protein g / day = 80
+Protocol: Protein g / day | Count: 1 | Value: 80
+Filled Protein g / day
+Filled Protein g / day
+Filling protocol: Carbs g / day = 125
+Protocol: Carbs g / day | Count: 1 | Value: 125
+Filled Carbs g / day
+Filled Carbs g / day
+Filling protocol: Fat g / day = 30
+Protocol: Fat g / day | Count: 1 | Value: 30
+Filled Fat g / day
+Filled Fat g / day
+Filling protocol: Hydration ml = 4
+Protocol: Hydration ml | Count: 1 | Value: 4
+Filled Hydration ml
+Filled Hydration ml
+Filling protocol: Sleep hrs = 6
+Protocol: Sleep hrs | Count: 1 | Value: 6
+Filled Sleep hrs
+Filled Sleep hrs
+Filling protocol: Strength / wk = 45
+Protocol: Strength / wk | Count: 1 | Value: 45
+Filled Strength / wk
+Filled Strength / wk
+Filling protocol: Stress / wk = 10
+Protocol: Stress / wk | Count: 1 | Value: 10
+Filled Stress / wk
+Filled Stress / wk
+Filling protocol: Weight loss % = 2
+Protocol: Weight loss % | Count: 1 | Value: 2
+Filled Weight loss %
+Filled Weight loss %
+Filling protocol: Resting HR = 4
+Protocol: Resting HR | Count: 1 | Value: 4
+Filled Resting HR
+Filled Resting HR
+Filling protocol: HRV = 50
+Protocol: HRV | Count: 1 | Value: 50
+Filled HRV
+Filled HRV
