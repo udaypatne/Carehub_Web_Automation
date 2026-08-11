@@ -19,4 +19,7 @@ export class BasePage {
         await this.page.waitForLoadState('networkidle')
     }
 
+    async waitForElementTimeout (sec:number){
+        await this.page.waitForTimeout(sec);
+    }
 }

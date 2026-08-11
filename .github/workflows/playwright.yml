@@ -2,7 +2,8 @@ name:  Tests
 
 on:
   #schedule:
-  #  - cron: '30 21 * * 1-4'  # Mon-Fri 8PM IST
+  #  - cron: '30 21 * * 1-4'  # Mon-Fri 5PM IST
+  #  - cron: '30 09 * * 1-4'  # Mon-Fri 9AM
   # push:
   #   branches: [main]
   # pull_request:

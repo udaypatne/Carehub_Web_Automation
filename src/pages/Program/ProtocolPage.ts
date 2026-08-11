@@ -78,7 +78,7 @@ export class ProtocolPage extends BasePage {
     }
 
     async weekSaved(): Promise<boolean> {
-        return await this.savedMessage.isVisible();
+        return await this.savedMessage.isVisible({timeout: 10000});
     }
 
     async selectPhase(phaseName: string): Promise<void> {

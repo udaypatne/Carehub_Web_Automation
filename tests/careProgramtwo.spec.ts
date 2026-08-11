@@ -4,8 +4,6 @@ import { test, expect } from "../src/fixtures/programFixture"
 
 
 
-
-
 test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
     await loginPage.navToLoginPage();
     loginPage.login(process.env.ORG_ADMIN!, 'Test@123');
@@ -16,12 +14,12 @@ test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
     await page.waitForLoadState('networkidle');
 })
 
-test('verify create Program', async ({ careProgramPage2, protocolPage, page }) => {
+test('verify create Program', async ({ careProgramPage2, protocolPage, basePage }) => {
     let expectedModuleText = 'Automation Module';
     let expectedWeekText = 'sample Week'
     await careProgramPage2.selectTab('Care Programs');
     await careProgramPage2.expectedUrlPath();
-    await page.waitForTimeout(2000);
+    await basePage.waitForElementTimeout(2000);
     await careProgramPage2.createProgram('sample', '1', 'automation')
 
     await protocolPage.createModule('Phase 1', expectedModuleText)
@@ -45,6 +43,7 @@ test('verify create Program', async ({ careProgramPage2, protocolPage, page }) =
     ];
     await protocolPage.addWeekUnderModule(expectedModuleText);
     await protocolPage.createWeek('1', expectedWeekText, 'description', protocols);
+    await basePage.waitForPageApiCall();
     expect(await protocolPage.weekSaved()).toBeTruthy();
 
 

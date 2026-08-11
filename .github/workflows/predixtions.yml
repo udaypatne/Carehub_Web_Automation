@@ -1,0 +1,294 @@
+name: carehub
+
+on:
+  #schedule:
+  #  - cron: '30 21 * * 1-4'  # Mon-Fri 5PM IST
+  #  - cron: '30 09 * * 1-4'  # Mon-Fri 9AM
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment'
+        required: true
+        default: 'QA'
+        type: choice
+        options:
+          - QA
+          - PROD
+
+permissions:
+  contents: read
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    environment: ${{ github.event.inputs.environment || 'QA' }}
+
+    steps:
+
+      # =====================================================
+      # 1. Checkout code
+      # =====================================================
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      # =====================================================
+      # 2. Setup Node.js
+      # =====================================================
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+
+      # =====================================================
+      # 3. Cache Playwright browsers
+      # =====================================================
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+
+
+      # =====================================================
+      # 4. Install dependencies
+      # =====================================================
+
+      - name: Install dependencies
+        run: npm ci
+
+
+      # =====================================================
+      # 5. Install Playwright browsers
+      # =====================================================
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+
+      # =====================================================
+      # 6. Install OS dependencies if browser is cached
+      # =====================================================
+
+      - name: Install Playwright OS deps only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+
+      # =====================================================
+      # 7. Run Playwright tests
+      # =====================================================
+
+      - name: Run Playwright tests
+        id: playwright-tests
+        run: npx playwright test --project=chromium
+        continue-on-error: true
+        env:
+          ENV: ${{ github.event.inputs.environment || 'QA' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          ORG_ADMIN: ${{ secrets.ORG_ADMIN }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          PHYSICIAN_ROLE: ${{ secrets.PHYSICIAN_ROLE }}
+          CUSTOM_ROLE: ${{ secrets.CUSTOM_ROLE }}
+          TECHADMIN_ROLE: ${{ secrets.TECHADMIN_ROLE }}
+          MARKETING_ROLE: ${{ secrets.MARKETING_ROLE }}
+          CLINICAL_ROLE: ${{ secrets.CLINICAL_ROLE }}
+          DIETICIAN_ROLE: ${{ secrets.DIETICIAN_ROLE }}
+          CARECOORDINATOR_ROLE: ${{ secrets.CARECOORDINATOR_ROLE }}
+          NURSE_ROLE: ${{ secrets.NURSE_ROLE }}
+
+
+      # =====================================================
+      # 8. Generate Allure Report
+      # =====================================================
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          npx allure generate allure-results --clean -o allure-report
+
+
+      # =====================================================
+      # 9. Create ZIP files for email
+      # =====================================================
+
+      - name: Create report ZIP files
+        if: always()
+        run: |
+          if [ -d "playwright-report" ]; then
+            zip -r playwright-report.zip playwright-report
+          fi
+
+          if [ -d "reports/html-report" ]; then
+            zip -r playwright-html-report.zip reports/html-report
+          fi
+
+          if [ -d "allure-report" ]; then
+            zip -r allure-report.zip allure-report
+          fi
+
+
+      # =====================================================
+      # 10. Upload Playwright HTML Report to GitHub Artifact
+      # =====================================================
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            reports/html-report/
+          retention-days: 30
+
+
+      # =====================================================
+      # 11. Upload Allure Results
+      # =====================================================
+
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          retention-days: 30
+
+
+      # =====================================================
+      # 12. Upload Allure HTML Report
+      # =====================================================
+
+      - name: Upload Allure HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_id }}
+          path: allure-report/
+          retention-days: 30
+
+
+      # =====================================================
+      # 13. Upload ZIP files
+      # =====================================================
+
+      - name: Upload Report ZIP files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: automation-reports-${{ github.run_id }}
+          path: |
+            playwright-report.zip
+            playwright-html-report.zip
+            allure-report.zip
+          retention-days: 30
+
+
+      # =====================================================
+      # 14. Send Email Notification
+      # =====================================================
+
+      - name: Send Email Notification
+        if: always()
+        uses: dawidd6/action-send-mail@v6
+        with:
+
+          # Gmail SMTP
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          # Gmail credentials from GitHub Secrets
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          # Email sender
+          from: Playwright Automation <${{ secrets.EMAIL_USERNAME }}>
+
+          # Team member email addresses
+          to: uday.patne@predixtions.com
+
+          # Email subject
+          subject: "Playwright Automation - ${{ github.event.inputs.environment || 'QA' }} - ${{ steps.playwright-tests.outcome }}"
+
+          # Email body
+          body: |
+            Hello Team,
+
+            Playwright automation execution has completed.
+
+            ==========================================
+            TEST EXECUTION DETAILS
+            ==========================================
+
+            Environment : ${{ github.event.inputs.environment || 'QA' }}
+
+            Test Status : ${{ steps.playwright-tests.outcome }}
+
+            Repository  : ${{ github.repository }}
+
+            Branch      : ${{ github.ref_name }}
+
+            Run Number  : ${{ github.run_number }}
+
+            Run ID      : ${{ github.run_id }}
+
+            ==========================================
+            REPORTS
+            ==========================================
+
+            The following reports are attached to this email:
+
+            1. Playwright HTML Report
+            2. Allure HTML Report
+
+            ==========================================
+            GITHUB ACTIONS RUN
+            ==========================================
+
+            View complete GitHub Actions execution:
+
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ==========================================
+
+            Thank you,
+
+            Playwright Automation Team
+
+          # Attach reports
+          attachments: |
+            playwright-report.zip
+            playwright-html-report.zip
+            allure-report.zip
+
+
+      # =====================================================
+      # 15. Fail workflow if Playwright tests failed
+      # =====================================================
+
+      - name: Check Playwright test result
+        if: always()
+        run: |
+          if [ "${{ steps.playwright-tests.outcome }}" != "success" ]; then
+            echo "Playwright tests failed."
+            exit 1
+          fi
+
+          echo "Playwright tests passed."
