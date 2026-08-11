@@ -1,0 +1,745 @@
+name: Predixtions
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Run up to environment"
+        required: true
+        default: "QA"
+        type: choice
+        options:
+          - QA
+          - Prod
+
+jobs:
+
+  # ============================================================
+  # TEST JOB
+  # ============================================================
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    environment: ${{ github.event.inputs.environment || 'QA' }}
+
+    steps:
+
+      # ----------------------------------------------------------
+      # Checkout
+      # ----------------------------------------------------------
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+
+      
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+
+
+      
+      - name: Install dependencies
+        run: npm ci
+
+
+      
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+
+      
+      - name: Install Playwright OS deps only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+
+      # ----------------------------------------------------------
+      # Run Playwright tests
+      # ----------------------------------------------------------
+      - name: Run tests
+        run: npx playwright test --project=chromium
+        env:
+          ENV: ${{ github.event.inputs.environment || 'QA' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+
+          ORG_ADMIN: ${{ secrets.ORG_ADMIN }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+
+          PHYSICIAN_ROLE: ${{ secrets.PHYSICIAN_ROLE }}
+          CUSTOM_ROLE: ${{ secrets.CUSTOM_ROLE }}
+          TECHADMIN_ROLE: ${{ secrets.TECHADMIN_ROLE }}
+          MARKETING_ROLE: ${{ secrets.MARKETING_ROLE }}
+          CLINICAL_ROLE: ${{ secrets.CLINICAL_ROLE }}
+          DIETICIAN_ROLE: ${{ secrets.DIETICIAN_ROLE }}
+          CARECOORDINATOR_ROLE: ${{ secrets.CARECOORDINATOR_ROLE }}
+          NURSE_ROLE: ${{ secrets.NURSE_ROLE }}
+
+
+    
+      - name: Install Allure CLI
+        if: always()
+        run: npm install -g allure-commandline
+
+
+      
+      - name: Generate Allure Report
+        if: always()
+        shell: bash
+        run: |
+          echo "=========================================="
+          echo "Generating Allure Report"
+          echo "=========================================="
+
+          if [ -d "allure-results" ] && [ "$(find allure-results -type f | head -1)" ]; then
+            echo "Allure results found."
+
+            rm -rf allure-report
+
+            allure generate allure-results \
+              --clean \
+              -o allure-report
+
+            echo "Allure report generated successfully."
+
+            echo "Report contents:"
+            find allure-report -maxdepth 2 -type f | head -50
+
+          else
+            echo "No Allure results found."
+            echo "Skipping Allure report generation."
+          fi
+
+
+      
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report-${{ github.run_id }}
+          path: reports/html-report/
+          retention-days: 30
+          if-no-files-found: ignore
+
+
+      
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ github.run_id }}
+          path: allure-report/
+          retention-days: 30
+          if-no-files-found: ignore
+
+
+      
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+
+
+  notify:
+    name: Publish Reports + Notify
+
+    needs:
+      - test
+
+    if: always()
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+
+      # ----------------------------------------------------------
+      # Determine test status
+      # ----------------------------------------------------------
+      - name: Set Status Emoji
+        id: status
+        shell: bash
+        run: |
+
+          TEST_STATUS="${{ needs.test.result }}"
+
+          echo "Test status: $TEST_STATUS"
+
+          get_emoji() {
+            if [ "$1" = "success" ]; then
+              echo "✅"
+            elif [ "$1" = "skipped" ]; then
+              echo "⏭️"
+            else
+              echo "❌"
+            fi
+          }
+
+          echo "test=$(get_emoji "$TEST_STATUS")" >> "$GITHUB_OUTPUT"
+
+          if [ "$TEST_STATUS" = "success" ]; then
+            echo "overall=✅ ALL PASSED" >> "$GITHUB_OUTPUT"
+          else
+            echo "overall=❌ SOME FAILURES" >> "$GITHUB_OUTPUT"
+          fi
+
+          # GitHub Pages URL
+          REPORT_BASE="https://udaypatne.github.io/Carehub_Web_Automation"
+
+          echo "report_url=${REPORT_BASE}" >> "$GITHUB_OUTPUT"
+
+          echo "GitHub Pages URL:"
+          echo "${REPORT_BASE}"
+
+
+      # ----------------------------------------------------------
+      # Download all artifacts
+      # ----------------------------------------------------------
+      - name: Download All Reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-reports
+
+
+      # ----------------------------------------------------------
+      # Show downloaded artifacts
+      # ----------------------------------------------------------
+      - name: Show Downloaded Reports
+        shell: bash
+        run: |
+
+          echo "=========================================="
+          echo "Downloaded artifacts"
+          echo "=========================================="
+
+          find all-reports -maxdepth 3 -type f | head -100 || true
+
+
+      # ----------------------------------------------------------
+      # Organize reports for GitHub Pages
+      # ----------------------------------------------------------
+      - name: Organize Reports for GitHub Pages
+        shell: bash
+        run: |
+
+          RUN_ID="${{ github.run_id }}"
+
+          echo "=========================================="
+          echo "Preparing GitHub Pages"
+          echo "Run ID: ${RUN_ID}"
+          echo "=========================================="
+
+
+          # ------------------------------------------------------
+          # Create directories
+          # ------------------------------------------------------
+
+          mkdir -p "pages-deploy/runs/${RUN_ID}"
+
+          mkdir -p "pages-deploy/runs/${RUN_ID}/qa-allure"
+
+          mkdir -p "pages-deploy/runs/${RUN_ID}/qa-html"
+
+
+          # ------------------------------------------------------
+          # Find Allure artifact
+          # ------------------------------------------------------
+
+          ALLURE_DIR="all-reports/allure-report-${RUN_ID}"
+
+          if [ -d "$ALLURE_DIR" ]; then
+
+            echo "Allure report found:"
+            echo "$ALLURE_DIR"
+
+            # Copy COMPLETE Allure report
+            cp -r "${ALLURE_DIR}/." \
+              "pages-deploy/runs/${RUN_ID}/qa-allure/"
+
+            # ----------------------------------------------------
+            # IMPORTANT:
+            # Copy latest Allure report to ROOT of gh-pages
+            #
+            # This makes:
+            #
+            # https://udaypatne.github.io/Carehub_Web_Automation/
+            #
+            # open the latest Allure report.
+            # ----------------------------------------------------
+
+            cp -r "${ALLURE_DIR}/." \
+              "pages-deploy/"
+
+            echo "Allure report copied successfully."
+
+          else
+
+            echo "WARNING: Allure artifact was not found:"
+            echo "$ALLURE_DIR"
+
+          fi
+
+
+          # ------------------------------------------------------
+          # Find Playwright HTML artifact
+          # ------------------------------------------------------
+
+          HTML_DIR="all-reports/playwright-html-report-${RUN_ID}"
+
+          if [ -d "$HTML_DIR" ]; then
+
+            echo "Playwright HTML report found."
+
+            cp -r "${HTML_DIR}/." \
+              "pages-deploy/runs/${RUN_ID}/qa-html/"
+
+          else
+
+            echo "Playwright HTML report not found."
+
+          fi
+
+
+        # ------------------------------------------------------
+        # Create run dashboard
+        # ------------------------------------------------------
+
+          cat > "pages-deploy/runs/${RUN_ID}/run.html" << EOF
+          <!DOCTYPE html>
+          <html>
+
+          <head>
+
+            <meta charset="UTF-8">
+
+            <title>
+              Pipeline Reports - Run ${RUN_ID}
+            </title>
+
+            <style>
+
+              body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 40px;
+                background: #f5f5f5;
+              }
+
+              .container {
+                max-width: 800px;
+                margin: auto;
+              }
+
+              h1 {
+                color: #1a1a2e;
+              }
+
+              .card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                margin: 16px 0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              }
+
+              .links {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+              }
+
+              .btn {
+                display: inline-block;
+                padding: 12px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                color: white;
+                font-weight: bold;
+              }
+
+              .html-btn {
+                background: #1a1a2e;
+              }
+
+              .allure-btn {
+                background: #28a745;
+              }
+
+              .latest-btn {
+                background: #007bff;
+              }
+
+            </style>
+
+          </head>
+
+          <body>
+
+            <div class="container">
+
+              <h1>🎭 Pipeline Reports</h1>
+
+              <p>
+                Run ID: <strong>${RUN_ID}</strong>
+              </p>
+
+              <p>
+                Branch: <strong>${{ github.ref_name }}</strong>
+              </p>
+
+              <div class="card">
+
+                <h2>🔵 QA Regression</h2>
+
+                <div class="links">
+
+                  <a
+                    class="btn allure-btn"
+                    href="qa-allure/index.html">
+                    📈 Allure Report
+                  </a>
+
+                  <a
+                    class="btn html-btn"
+                    href="qa-html/index.html">
+                    📊 Playwright HTML Report
+                  </a>
+
+                  <a
+                    class="btn latest-btn"
+                    href="../../index.html">
+                    ⭐ Latest Report
+                  </a>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </body>
+
+          </html>
+          EOF
+
+
+          # ------------------------------------------------------
+          # Create root README-style landing page
+          # ONLY if Allure report wasn't generated.
+          #
+          # Normally the Allure index.html is already copied
+          # to pages-deploy/index.html.
+          # ------------------------------------------------------
+
+          if [ ! -f "pages-deploy/index.html" ]; then
+
+            cat > pages-deploy/index.html << EOF
+            <!DOCTYPE html>
+            <html>
+
+            <head>
+              <meta charset="UTF-8">
+              <title>Predixtions Automation Reports</title>
+            </head>
+
+            <body>
+
+              <h1>🎭 Predixtions Automation Reports</h1>
+
+              <h2>Run ${RUN_ID}</h2>
+
+              <p>
+                Allure report was not generated for this run.
+              </p>
+
+              <p>
+                <a href="runs/${RUN_ID}/run.html">
+                  View Run Dashboard
+                </a>
+              </p>
+
+            </body>
+
+            </html>
+            EOF
+
+          fi
+
+
+          # ------------------------------------------------------
+          # Show final structure
+          # ------------------------------------------------------
+
+          echo ""
+          echo "=========================================="
+          echo "GitHub Pages structure"
+          echo "=========================================="
+
+          find pages-deploy -maxdepth 4 -type f | sort | head -200
+
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: pages-deploy
+          keep_files: true
+
+
+      
+      - name: Create HTML Dashboard for Email
+        shell: bash
+        run: |
+
+          REPORT_URL="https://udaypatne.github.io/Carehub_Web_Automation"
+          RUN_ID="${{ github.run_id }}"
+
+          cat > dashboard.html << EOF
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+            <meta charset="UTF-8">
+
+            <style>
+
+              body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #f5f5f5;
+              }
+
+              .container {
+                max-width: 700px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+              }
+
+              .header {
+                background: #1a1a2e;
+                color: white;
+                padding: 30px;
+                text-align: center;
+              }
+
+              .header h1 {
+                margin: 0;
+                font-size: 24px;
+              }
+
+              .body {
+                padding: 24px;
+              }
+
+              table {
+                width: 100%;
+                border-collapse: collapse;
+              }
+
+              th {
+                background: #f8f9fa;
+                text-align: left;
+                padding: 12px;
+              }
+
+              td {
+                padding: 14px;
+                border-bottom: 1px solid #eee;
+              }
+
+              .reports {
+                padding: 20px;
+                background: #f8f9fa;
+              }
+
+              .report-link {
+                display: inline-block;
+                padding: 10px 20px;
+                background: #1a1a2e;
+                color: white;
+                text-decoration: none;
+                border-radius: 6px;
+                margin: 4px;
+              }
+
+              .green {
+                background: #28a745;
+              }
+
+              .footer {
+                text-align: center;
+                padding: 16px;
+                color: #999;
+                font-size: 12px;
+              }
+
+            </style>
+
+          </head>
+
+          <body>
+
+            <div class="container">
+
+              <div class="header">
+
+                <h1>
+                  🎭 Predixtions Automation Report
+                </h1>
+
+                <p>
+                  Pipeline Run ${RUN_ID}
+                </p>
+
+              </div>
+
+
+              <div class="body">
+
+                <p>
+                  <strong>Branch:</strong>
+                  ${{ github.ref_name }}
+                </p>
+
+                <p>
+                  <strong>Triggered by:</strong>
+                  ${{ github.actor }}
+                </p>
+
+                <table>
+
+                  <tr>
+                    <th>Stage</th>
+                    <th>Status</th>
+                  </tr>
+
+                  <tr>
+                    <td>🔵 QA</td>
+                    <td>
+                      ${{ steps.status.outputs.test }}
+                    </td>
+                  </tr>
+
+                </table>
+
+              </div>
+
+
+              <div class="reports">
+
+                <h3>
+                  📊 View Reports
+                </h3>
+
+                <a
+                  class="report-link green"
+                  href="${REPORT_URL}/">
+                  📈 Latest Allure Report
+                </a>
+
+                <a
+                  class="report-link"
+                  href="${REPORT_URL}/runs/${RUN_ID}/run.html">
+                  📁 This Run
+                </a>
+
+                <a
+                  class="report-link green"
+                  href="${REPORT_URL}/runs/${RUN_ID}/qa-allure/index.html">
+                  📈 This Run Allure
+                </a>
+
+              </div>
+
+
+              <div class="footer">
+
+                Uday Predixtions Admin Automation
+
+                <br>
+
+                $(date +'%d %b %Y, %I:%M %p UTC')
+
+              </div>
+
+            </div>
+
+          </body>
+
+          </html>
+
+          EOF
+
+      - name: Send Email with Dashboard
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          subject: "🎭 Predixtions — ${{ steps.status.outputs.overall }} — ${{ github.ref_name }}"
+
+          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
+
+          from: "CI Bot <${{ secrets.EMAIL_USERNAME }}>"
+
+          html_body: file://dashboard.html
+
+
+    
+      - name: Pipeline Summary
+        run: |
+
+          echo "=========================================="
+          echo "       Predixtions Automation"
+          echo "=========================================="
+
+          echo "QA Run: ${{ needs.test.result }}"
+
+          echo ""
+
+          echo "Latest Allure Report:"
+          echo "https://udaypatne.github.io/Carehub_Web_Automation/"
+
+          echo ""
+
+          echo "Run-specific Allure Report:"
+          echo "https://udaypatne.github.io/Carehub_Web_Automation/runs/${{ github.run_id }}/qa-allure/"
+
+          echo ""
+
+          echo "GitHub Actions Run:"
+          echo "https://github.com/udaypatne/Carehub_Web_Automation/actions/runs/${{ github.run_id }}"
+
+          echo "=========================================="
