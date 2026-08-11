@@ -331,7 +331,7 @@ jobs:
 
           from: "Playwright Automation <${{ secrets.EMAIL_USERNAME }}>"
           
-          to: uday.patne@predixtions.com
+          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
 
           subject: "🎭 Playwright ${{ github.event.inputs.environment || 'QA' }} Automation Report - Run #${{ github.run_number }}"
 
