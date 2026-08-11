@@ -1,4 +1,4 @@
-name: dK2
+name: Predixtions
 
 on:
   workflow_dispatch:
@@ -227,7 +227,7 @@ jobs:
                 </div>
                 <table>
                   <tr><th>Stage</th><th>Test Suite</th><th>Status</th></tr>
-                  <tr><td class="env-name">🔵 QA</td><td class="test-type">Regression (All Tests)</td><td class="status">${{ steps.status.outputs.qa }}</td></tr>
+                  <tr><td class="env-name">🔵 QA</td><td class="test-type">Predixtions test scripts</td><td class="status">${{ steps.status.outputs.qa }}</td></tr>
                             
                 </table>
               </div>
@@ -254,12 +254,12 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "🎭 Predixtions — ${{ steps.status.outputs.overall }} — ${{ github.ref_name }}"
-          to: uday.patne@predixtions.com
+          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
           from: "CI Bot <${{ secrets.EMAIL_USERNAME }}>"
           html_body: file://dashboard.html
 
 
-      - name: Pipeline Summary
+      - name: Predixtions admin test
         run: |
           echo "═══════════════════════════════════════════"
           echo "       Predixtions"
