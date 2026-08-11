@@ -74,7 +74,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-html-report-${{ github.run_id }}
+          name: qa-html-report
           path: reports/html-report/
           retention-days: 30
 
@@ -82,7 +82,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-${{ github.run_id }}
+          name: qa-allure-report
           path: allure-results/
           retention-days: 30
 
@@ -169,8 +169,8 @@ jobs:
           sed -i "s|RUN_DATE|$(date +'%d %b %Y, %I:%M %p UTC')|g" pages-deploy/runs/${{ github.run_id }}/index.html
 
           # Copy reports into organized folders
-          cp -r all-reports/qa-regression-html-report/ pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
-          cp -r all-reports/qa-regression-allure-report/ pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
+          cp -r all-reports/qa-html-report/ pages-deploy/runs/${{ github.run_id }}/qa-html/ 2>/dev/null || true
+          cp -r all-reports/qa-allure-report/ pages-deploy/runs/${{ github.run_id }}/qa-allure/ 2>/dev/null || true
           
           echo "Reports organized ✅"
           ls -la pages-deploy/runs/${{ github.run_id }}/
@@ -264,6 +264,6 @@ jobs:
           echo "═══════════════════════════════════════════"
           echo "       Predixtions"
           echo "═══════════════════════════════════════════"
-          echo "  QA Run:   ${{ needs.regression-qa.result }}"
+          echo "  QA Run:   ${{ needs.test.result }}"
           echo "  Reports:         ${{ steps.status.outputs.report_url }}/index.html"
           echo "═══════════════════════════════════════════"        
