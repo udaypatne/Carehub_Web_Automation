@@ -1,0 +1,513 @@
+name: Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment'
+        required: true
+        default: 'QA'
+        type: choice
+        options:
+          - QA
+          - PROD
+
+  # Uncomment if you want scheduled execution
+  #
+  # schedule:
+  #   # 9:00 AM IST Monday-Friday
+  #   - cron: '30 03 * * 1-5'
+  #
+  #   # 5:00 PM IST Monday-Friday
+  #   - cron: '30 11 * * 1-5'
+  #
+  # push:
+  #   branches:
+  #     - main
+  #
+  # pull_request:
+  #   branches:
+  #     - main
+
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    environment: ${{ github.event.inputs.environment || 'QA' }}
+
+    permissions:
+      contents: write
+
+    steps:
+
+      # =========================================================
+      # CHECKOUT
+      # =========================================================
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      # =========================================================
+      # NODE
+      # =========================================================
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+
+      # =========================================================
+      # PLAYWRIGHT CACHE
+      # =========================================================
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+
+      # =========================================================
+      # INSTALL DEPENDENCIES
+      # =========================================================
+
+      - name: Install dependencies
+        run: npm ci
+
+
+      # =========================================================
+      # INSTALL PLAYWRIGHT
+      # =========================================================
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+
+      # =========================================================
+      # RUN PLAYWRIGHT TESTS
+      # =========================================================
+
+      - name: Run Playwright tests
+        id: playwright-tests
+        run: npx playwright test --project=chromium
+        continue-on-error: true
+
+        env:
+          ENV: ${{ github.event.inputs.environment || 'QA' }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          ORG_ADMIN: ${{ secrets.ORG_ADMIN }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+
+          PHYSICIAN_ROLE: ${{ secrets.PHYSICIAN_ROLE }}
+          CUSTOM_ROLE: ${{ secrets.CUSTOM_ROLE }}
+          TECHADMIN_ROLE: ${{ secrets.TECHADMIN_ROLE }}
+          MARKETING_ROLE: ${{ secrets.MARKETING_ROLE }}
+          CLINICAL_ROLE: ${{ secrets.CLINICAL_ROLE }}
+          DIETICIAN_ROLE: ${{ secrets.DIETICIAN_ROLE }}
+          CARECOORDINATOR_ROLE: ${{ secrets.CARECOORDINATOR_ROLE }}
+          NURSE_ROLE: ${{ secrets.NURSE_ROLE }}
+
+
+      # =========================================================
+      # GENERATE ALLURE REPORT
+      # =========================================================
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          npm install -g allure-commandline
+
+          rm -rf allure-report
+
+          allure generate allure-results \
+            --clean \
+            -o allure-report
+
+          echo "======================================"
+          echo "Allure report generated"
+          echo "======================================"
+
+          ls -la allure-report
+
+
+      # =========================================================
+      # UPLOAD PLAYWRIGHT REPORT AS ARTIFACT
+      # OPTIONAL - KEEP FOR BACKUP
+      # =========================================================
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report-${{ github.run_id }}
+          path: reports/html-report/
+          retention-days: 30
+
+
+      # =========================================================
+      # UPLOAD ALLURE RESULTS AS ARTIFACT
+      # OPTIONAL - KEEP RAW RESULTS
+      # =========================================================
+
+      - name: Upload Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          retention-days: 30
+
+
+      # =========================================================
+      # PREPARE GITHUB PAGES
+      # =========================================================
+
+      - name: Prepare GitHub Pages
+        if: always()
+        run: |
+
+          mkdir -p pages-deploy/runs/${{ github.run_id }}/allure
+
+          # Copy generated Allure HTML report
+          cp -r allure-report/* \
+            pages-deploy/runs/${{ github.run_id }}/allure/
+
+
+          # Create landing page
+          cat > pages-deploy/runs/${{ github.run_id }}/index.html << EOF
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+            <meta charset="UTF-8">
+
+            <title>Playwright Allure Report</title>
+
+            <style>
+
+              body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                margin: 0;
+                padding: 50px;
+              }
+
+              .container {
+                max-width: 700px;
+                margin: auto;
+              }
+
+              .card {
+                background: white;
+                padding: 35px;
+                border-radius: 12px;
+                box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+                text-align: center;
+              }
+
+              h1 {
+                color: #1a1a2e;
+              }
+
+              .info {
+                color: #666;
+                margin: 10px 0;
+              }
+
+              .button {
+                display: inline-block;
+                margin-top: 25px;
+                padding: 14px 28px;
+                background: #28a745;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                font-size: 16px;
+              }
+
+              .button:hover {
+                background: #218838;
+              }
+
+            </style>
+
+          </head>
+
+          <body>
+
+            <div class="container">
+
+              <div class="card">
+
+                <h1>🎭 Playwright Automation</h1>
+
+                <h2>📈 Allure Report</h2>
+
+                <p class="info">
+                  Environment:
+                  <strong>${{ github.event.inputs.environment || 'QA' }}</strong>
+                </p>
+
+                <p class="info">
+                  Branch:
+                  <strong>${{ github.ref_name }}</strong>
+                </p>
+
+                <p class="info">
+                  Run ID:
+                  <strong>${{ github.run_id }}</strong>
+                </p>
+
+                <p class="info">
+                  Run Number:
+                  <strong>#${{ github.run_number }}</strong>
+                </p>
+
+                <a
+                  class="button"
+                  href="./allure/index.html"
+                  target="_blank">
+
+                  📈 Open Allure Report
+
+                </a>
+
+              </div>
+
+            </div>
+
+          </body>
+
+          </html>
+
+          EOF
+
+
+      # =========================================================
+      # DEPLOY TO GITHUB PAGES
+      # =========================================================
+
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: pages-deploy
+          keep_files: true
+
+
+      # =========================================================
+      # SEND EMAIL
+      # =========================================================
+
+      - name: Send Allure Report Email
+        if: always()
+        uses: dawidd6/action-send-mail@v6
+        with:
+
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+          from: "Playwright Automation <${{ secrets.EMAIL_USERNAME }}>"
+          
+          to: uday.patne@predixtions.com
+
+          subject: "🎭 Playwright ${{ github.event.inputs.environment || 'QA' }} Automation Report - Run #${{ github.run_number }}"
+
+          html_body: |
+            <!DOCTYPE html>
+
+            <html>
+
+            <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,sans-serif;">
+
+              <div style="max-width:650px;margin:30px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 3px 12px rgba(0,0,0,0.12);">
+
+                <!-- HEADER -->
+
+                <div style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
+
+                  <h1 style="margin:0;">
+                    🎭 Playwright Automation
+                  </h1>
+
+                  <p style="margin:10px 0 0;">
+                    Test Execution Completed
+                  </p>
+
+                </div>
+
+
+                <!-- BODY -->
+
+                <div style="padding:30px;">
+
+                  <h2 style="color:#333;">
+                    📊 Execution Details
+                  </h2>
+
+                  <table
+                    width="100%"
+                    cellpadding="10"
+                    cellspacing="0"
+                    style="border-collapse:collapse;">
+
+                    <tr>
+                      <td style="color:#666;">
+                        Environment
+                      </td>
+
+                      <td>
+                        <strong>
+                          ${{ github.event.inputs.environment || 'QA' }}
+                        </strong>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="color:#666;">
+                        Branch
+                      </td>
+
+                      <td>
+                        <strong>
+                          ${{ github.ref_name }}
+                        </strong>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="color:#666;">
+                        Run Number
+                      </td>
+
+                      <td>
+                        <strong>
+                          #${{ github.run_number }}
+                        </strong>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="color:#666;">
+                        Run ID
+                      </td>
+
+                      <td>
+                        <strong>
+                          ${{ github.run_id }}
+                        </strong>
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="color:#666;">
+                        Test Status
+                      </td>
+
+                      <td>
+                        <strong>
+                          ${{ steps.playwright-tests.outcome }}
+                        </strong>
+                      </td>
+                    </tr>
+
+                  </table>
+
+
+                  <!-- REPORT -->
+
+                  <div style="margin-top:30px;text-align:center;">
+
+                    <h2>
+                      📈 Allure Test Report
+                    </h2>
+
+                    <p style="color:#666;">
+
+                      Your Allure report has been generated
+                      and published successfully.
+
+                    </p>
+
+                    <a
+                      href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/runs/${{ github.run_id }}/allure/"
+                      target="_blank"
+                      style="
+                        display:inline-block;
+                        padding:14px 28px;
+                        background:#28a745;
+                        color:white;
+                        text-decoration:none;
+                        border-radius:8px;
+                        font-weight:bold;
+                      ">
+
+                      📈 Open Allure Report
+
+                    </a>
+
+                  </div>
+
+
+                  <!-- GITHUB ACTIONS -->
+
+                  <div style="margin-top:25px;text-align:center;">
+
+                    <a
+                      href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      target="_blank"
+                      style="
+                        display:inline-block;
+                        padding:10px 20px;
+                        background:#6c757d;
+                        color:white;
+                        text-decoration:none;
+                        border-radius:6px;
+                      ">
+
+                      ⚙️ View GitHub Actions Run
+
+                    </a>
+
+                  </div>
+
+                </div>
+
+
+                <!-- FOOTER -->
+
+                <div style="background:#f8f9fa;padding:18px;text-align:center;color:#999;font-size:12px;">
+
+                  Predixtions Playwright Automation<br>
+
+                  GitHub Run #${{ github.run_number }}
+
+                </div>
+
+              </div>
+
+            </body>
+
+            </html>
