@@ -197,7 +197,7 @@ jobs:
 
             <meta charset="UTF-8">
 
-            <title>Playwright Allure Report</title>
+            <title>Predixtions Admin Allure Report</title>
 
             <style>
 
@@ -256,9 +256,9 @@ jobs:
 
               <div class="card">
 
-                <h1>🎭 Playwright Automation</h1>
+                <h1>🎭 Predixtions Admin Automation</h1>
 
-                <h2>📈 Allure Report</h2>
+                <h2>📈 Predixtions Admin automation result report</h2>
 
                 <p class="info">
                   Environment:
@@ -329,7 +329,7 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
 
-          from: "Playwright Automation <${{ secrets.EMAIL_USERNAME }}>"
+          from: "Predixtions Automation <${{ secrets.EMAIL_USERNAME }}>"
           
           to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
 
@@ -349,7 +349,7 @@ jobs:
                 <div style="background:#1a1a2e;color:white;padding:30px;text-align:center;">
 
                   <h1 style="margin:0;">
-                    🎭 Playwright Automation
+                    🎭 Predixtions Admin Automation
                   </h1>
 
                   <p style="margin:10px 0 0;">
@@ -441,12 +441,12 @@ jobs:
                   <div style="margin-top:30px;text-align:center;">
 
                     <h2>
-                      📈 Allure Test Report
+                      📈 Predixtions Test Report
                     </h2>
 
                     <p style="color:#666;">
 
-                      Your Allure report has been generated
+                      Your admin automation result report has been generated
                       and published successfully.
 
                     </p>
@@ -464,7 +464,7 @@ jobs:
                         font-weight:bold;
                       ">
 
-                      📈 Open Allure Report
+                      📈 Open automation report
 
                     </a>
 
@@ -500,7 +500,7 @@ jobs:
 
                 <div style="background:#f8f9fa;padding:18px;text-align:center;color:#999;font-size:12px;">
 
-                  Predixtions Playwright Automation<br>
+                  Predixtions Admin Automation<br>
 
                   GitHub Run #${{ github.run_number }}
 
