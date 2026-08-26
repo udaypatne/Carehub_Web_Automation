@@ -29,7 +29,6 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
     let actualUrl = await loginPage.getLoginPageUrl();
     await expect(actualUrl).toBe("https://provider-qa.xspan.ai/dashboard");
     let actualTabs = await dashboardPage.getAllMenuItems();
-    await console.log(actualTabs)
     expect(actualTabs).toEqual(menuItems);
 });
 

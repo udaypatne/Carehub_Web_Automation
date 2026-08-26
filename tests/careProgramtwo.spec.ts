@@ -1,8 +1,12 @@
 
 import { test, expect } from "../src/fixtures/programFixture"
 
+let CareProgName = 'Automation'
 
+async function navigateOnProgramPage(careProgramPage2: any) {
+    return await careProgramPage2.selectProgramByName(CareProgName);
 
+}
 
 test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
     await loginPage.navToLoginPage();
@@ -10,17 +14,19 @@ test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
     await careProgramPage2.selectTab('Care Programs');
+    await page.waitForLoadState('load');
     await careProgramPage2.expectedUrlPath();
     await page.waitForLoadState('networkidle');
 })
 
 test('verify create Program', async ({ careProgramPage2, protocolPage, basePage }) => {
+    CareProgName = 'Automation'
     let expectedModuleText = 'Automation Module';
     let expectedWeekText = 'sample Week'
     await careProgramPage2.selectTab('Care Programs');
     await careProgramPage2.expectedUrlPath();
     await basePage.waitForElementTimeout(2000);
-    await careProgramPage2.createProgram('sample', '1', 'automation')
+    await careProgramPage2.createProgram(CareProgName, '1', 'description text');
 
     await protocolPage.createModule('Phase 1', expectedModuleText)
     let actualModuleText = await protocolPage.getModuleText(expectedModuleText);
@@ -46,5 +52,23 @@ test('verify create Program', async ({ careProgramPage2, protocolPage, basePage 
     await basePage.waitForPageApiCall();
     expect(await protocolPage.weekSaved()).toBeTruthy();
 
+})
 
+test('verify Tabs availability on Protocol Page', async ({ careProgramPage2, protocolPage, basePage }) => {
+    const expectedTabs = [
+        "Protocol",
+        "Enrolled Patients",
+        "Content Library",
+        "Outcomes",
+        "Voice Campaigns",
+        "Campaigns",
+        "Nudge Audit",
+        "Settings",
+    ]
+    await navigateOnProgramPage(careProgramPage2);
+    await careProgramPage2.clickOnViewDetails();
+    await basePage.waitForElementTimeout(2000);
+    let actualTabs = await protocolPage.getTabs();
+    console.log(actualTabs, 'list');
+    expect(actualTabs).toEqual(expectedTabs);
 })

@@ -254,7 +254,7 @@ jobs:
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "🎭 Predixtions — ${{ steps.status.outputs.overall }} — ${{ github.ref_name }}"
-          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
+          to: uday.patne@predixtions.com
           from: "CI Bot <${{ secrets.EMAIL_USERNAME }}>"
           html_body: file://dashboard.html
 

@@ -13,6 +13,7 @@ export class LoginPage extends BasePage {
     private readonly nextBtn: Locator;
     private readonly skipBtn: Locator;
     private readonly doNotShowCheckbox: Locator;
+    private readonly loginErrorMessage:Locator;
 
 
     constructor(page: Page) {
@@ -24,7 +25,8 @@ export class LoginPage extends BasePage {
         this.forgotPassword = page.getByRole('button', { name: 'Forgot password?' });
         this.nextBtn = page.locator(`//body//div[contains(@class,'outline-none')]//button[@type='button' and contains(text(),'Next')]`);
         this.skipBtn = page.locator(`//body//div[contains(@class,'outline-none')]//button[@type='button' and contains(text(),'Skip')]`);
-        this.doNotShowCheckbox = page.locator(`//div[contains(@class,'shadow')]//label[contains(@class,'flex')]/input[@type='checkbox']`);
+        this.doNotShowCheckbox = page.locator(`//div[contains(@class,'shadow')]//label[contains(@class,'flex')]/input[@type='checkbox']`).last();
+        this.loginErrorMessage=this.page.getByText('Invalid email or password.', { exact: true });
     }
 
     async navToLoginPage(): Promise<void> {
@@ -57,5 +59,10 @@ export class LoginPage extends BasePage {
             await this.skipBtn.click();
         }
     }
+
+    async isLoginErrorDisplayed(): Promise<boolean> {
+        return await this.loginErrorMessage.isVisible();
+    }
+
 
 }

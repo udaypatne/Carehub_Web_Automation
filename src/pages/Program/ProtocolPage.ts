@@ -34,6 +34,7 @@ export class ProtocolPage extends BasePage {
     private readonly hrvProtocol: Locator;
     private readonly allProtocols: Locator;
     private readonly savedMessage: Locator;
+    private readonly tabsList: Locator;
 
 
 
@@ -71,6 +72,7 @@ export class ProtocolPage extends BasePage {
         this.hrvProtocol = page.getByText(`HRV`).locator(`../input`)
         this.allProtocols = page.locator(`//div[contains(@class,' gap-x-3 gap-y-3')]//input`)
         this.savedMessage = page.getByText('Saved');
+        this.tabsList=page.locator(`//*[@role='tablist']//button/.`);
     }
 
     async getHeT(): Promise<string> {
@@ -79,6 +81,10 @@ export class ProtocolPage extends BasePage {
 
     async weekSaved(): Promise<boolean> {
         return await this.savedMessage.isVisible({});
+    }
+
+    async getTabs(): Promise<string[]> {
+        return await this.tabsList.allInnerTexts();
     }
 
     async selectPhase(phaseName: string): Promise<void> {

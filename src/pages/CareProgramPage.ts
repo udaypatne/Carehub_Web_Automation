@@ -37,7 +37,7 @@ export class CareProgramPage extends BasePage {
     }
 
     async careProgramBtns(buttonName: string): Promise<boolean> {
-        return await this.page.getByRole('button', { name: `${buttonName}` }).isVisible();
+        return await this.page.getByRole('button', { name: `${buttonName}` }).isVisible({ timeout: 30000 });
     }
 
     async selectProgramByName(programName: string): Promise<void> {

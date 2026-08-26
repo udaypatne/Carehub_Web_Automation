@@ -3,6 +3,8 @@ import { LoginPage } from "../pages/LoginPage"
 import { CareProgramPage } from "../pages/CareProgramPage"
 import { DashboardPage } from "../pages/DashboardPage"
 import { BasePage } from "../pages/BasePage"
+import { userhealthpassportpage } from "../pages/HealthPassport/userhealthpassportpage"
+import {healthuserlistpage} from "../pages/HealthPassport/healthuserlistpage"
 
 //define type for page fixtures:
 
@@ -11,6 +13,8 @@ type pageFixtures = {
     loginPage: LoginPage,
     dashboardPage: DashboardPage,
     careProgramPage: CareProgramPage;
+    healthUserListPage: healthuserlistpage;
+    userHealthPassportPage: userhealthpassportpage;
 }
 
 export let test = baseTest.extend<pageFixtures>({
@@ -33,6 +37,16 @@ export let test = baseTest.extend<pageFixtures>({
     careProgramPage: async ({ page }, use) => {
         let careProgramPage = new CareProgramPage(page);
         await use(careProgramPage);
+    },
+
+    healthUserListPage: async ({ page }, use) => {
+        let healthUserListPage = new healthuserlistpage(page);
+        await use(healthUserListPage);
+    },
+
+    userHealthPassportPage: async ({ page }, use) => {
+        let userHealthPassportPage = new userhealthpassportpage(page);
+        await use(userHealthPassportPage);
     },
 
 });

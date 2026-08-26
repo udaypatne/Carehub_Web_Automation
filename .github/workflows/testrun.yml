@@ -333,7 +333,7 @@ jobs:
           
           to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
 
-          subject: "🎭 Playwright ${{ github.event.inputs.environment || 'QA' }} Automation Report - Run #${{ github.run_number }}"
+          subject: "🎭 Predixtions Admin ${{ github.event.inputs.environment || 'QA' }} Automation Report - Run #${{ github.run_number }}"
 
           html_body: |
             <!DOCTYPE html>

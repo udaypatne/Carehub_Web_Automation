@@ -15,6 +15,8 @@ export class CareProgramPage2 extends BasePage {
     private readonly makeThisProgramCheckbox: Locator;
     private readonly cancel: Locator;
     private readonly saveCreateProgram: Locator;
+    private readonly programHeaderN: Locator;
+
 
 
 
@@ -31,7 +33,8 @@ export class CareProgramPage2 extends BasePage {
         this.programDescription = page.getByRole('textbox', { name: 'describe the program' });
         this.makeThisProgramCheckbox = page.getByRole('checkbox', { name: 'Make this Program' });
         this.cancel = page.getByRole('button', { name: 'Cancel' });
-        this.saveCreateProgram = page.locator(`//*[contains(@class,'flex flex-col-reve')]`).getByRole('button',{name:'Create Program'});
+        this.saveCreateProgram = page.locator(`//*[contains(@class,'flex flex-col-reve')]`).getByRole('button', { name: 'Create Program' });
+        this.programHeaderN = page.getByRole('heading', { level: 1 });
     }
 
     async selectTab(tabName: string): Promise<void> {
@@ -43,18 +46,14 @@ export class CareProgramPage2 extends BasePage {
     }
 
     async selectProgramByName(programName: string): Promise<void> {
-        let viewDetail = await this.page.locator(`//*[contains(text(),'${programName}')]/../../../..`).getByRole('button', { name: 'view Details' })
+        let viewDetail = await this.page.locator(`//*[contains(text(),'${programName}')]/../../..`).getByRole('button', { name: 'view Details' }).first();
         await viewDetail.waitFor({ state: 'visible' });
         await viewDetail.click();
     }
 
-    async clickOnViewDetails() {
-        await this.viewDetails.waitFor({
-            state: 'visible'
-        });
-        if (await this.viewDetails.isVisible) {
-            await this.viewDetails.click()
-        }
+    async clickOnViewDetails(): Promise<void> {
+        // await this.viewDetails.waitFor({     state: 'visible'});
+        await this.viewDetails.click();
     };
 
     async isReadOnlyPermissionMsgPresent(): Promise<boolean> {
@@ -76,8 +75,8 @@ export class CareProgramPage2 extends BasePage {
                 await this.programName.fill(progName);
                 await this.duration.fill(duration);
                 await this.modules.fill('2');
-                await this.programDescription.fill(progName);
-                await this.saveCreateProgram.click({timeout:5000});
+                await this.programDescription.fill(modules);
+                await this.saveCreateProgram.click({ timeout: 5000 });
             }
         }
 

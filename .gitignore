@@ -7,6 +7,8 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
+#downloads
+/downloads/
 
 # env files (credentials)
 config/.env.*

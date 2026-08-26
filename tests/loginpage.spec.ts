@@ -8,7 +8,7 @@ test.beforeEach(async ({ loginPage, page }) => {
 });
 
 
-test('loginPage', async ({ loginPage, page }) => {
+test('verifyLogin', async ({ loginPage, page }) => {
     let actualUrl = await loginPage.getLoginPageUrl();
     expect(actualUrl).toBe("https://provider-qa.xspan.ai/dashboard");
     expect(page).toHaveURL('/dashboard');
@@ -27,5 +27,4 @@ test('NavigateOnWorkqueue', async ({ loginPage, page }) => {
     expect(actualUrl).toBe("https://provider-qa.xspan.ai/dashboard/work-queue/alerts");
     await expect(page).toHaveURL("https://provider-qa.xspan.ai/dashboard/work-queue/alerts");
 });
-
 
