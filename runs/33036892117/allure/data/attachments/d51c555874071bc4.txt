@@ -1,0 +1,11 @@
+Login button clicked
+[
+  'Protocol',
+  'Enrolled Patients\n729',
+  'Content Library',
+  'Outcomes',
+  'Voice Campaigns',
+  'Campaigns',
+  'Nudge Audit',
+  'Settings'
+] list
