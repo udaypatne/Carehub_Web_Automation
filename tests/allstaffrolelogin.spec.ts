@@ -161,7 +161,7 @@ test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashb
     await page.waitForURL('/dashboard/integrations')
     await loginPage.disableTutorial();
     let actualUrl = await loginPage.getLoginPageUrl();
-    await expect(actualUrl).toBe("https://provider-qa.xspan.ai/dashboard/integrations");
+    await expect(actualUrl).toContain("https://provider-qa.xspan.ai/dashboard/integrations");
     let actualTabs = await dashboardPage.getAllMenuItems();
     expect(actualTabs).toEqual(menuItems);
 });

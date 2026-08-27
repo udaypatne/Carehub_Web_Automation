@@ -27,7 +27,7 @@ export class CareProgramPage2 extends BasePage {
         this.readOnlyMsg = page.getByText(` Read-only — you don't have permission to edit this program's structure`);
         this.viewDetails = page.getByRole('button', { name: 'View Details' }).first();
         this.createProgramPopUp = page.getByRole('dialog', { name: 'Create Program' });
-        this.programName = page.getByRole('textbox', { name: 'e.g. Spring Weight Loss Cohort' });
+        this.programName = page.getByRole('textbox', { name: 'Program Name *' });
         this.duration = page.locator(`//*[contains(text(),'Duration')]/following-sibling::input`);
         this.modules = page.locator(`//*[contains(text(),'Total Module')]/following-sibling::input`);
         this.programDescription = page.getByRole('textbox', { name: 'describe the program' });

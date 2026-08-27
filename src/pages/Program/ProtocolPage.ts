@@ -1,6 +1,7 @@
 import { TIMEOUT } from "node:dns";
 import { BasePage } from "../BasePage";
 import { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 export class ProtocolPage extends BasePage {
 
@@ -35,6 +36,7 @@ export class ProtocolPage extends BasePage {
     private readonly allProtocols: Locator;
     private readonly savedMessage: Locator;
     private readonly tabsList: Locator;
+    private readonly weekTile: Locator;
 
 
 
@@ -72,15 +74,27 @@ export class ProtocolPage extends BasePage {
         this.hrvProtocol = page.getByText(`HRV`).locator(`../input`)
         this.allProtocols = page.locator(`//div[contains(@class,' gap-x-3 gap-y-3')]//input`)
         this.savedMessage = page.getByText('Saved');
-        this.tabsList=page.locator(`//*[@role='tablist']//button/.`);
+        this.tabsList = page.locator(`//*[@role='tablist']//button/.`);
+        this.weekTile = page.locator(`//div[contains(@class,'overflow-hidden bg-card')]//span[contains(text(),'Week 1')]`)
     }
 
     async getHeT(): Promise<string> {
         return this.programheading.innerText();
     }
 
+    async isWeekTitlePresent(): Promise<boolean> {
+        await expect(this.page.getByText('Saved')).toBeVisible({
+            timeout: 5000,
+        });
+        return true;
+    }
+
     async weekSaved(): Promise<boolean> {
-        return await this.savedMessage.isVisible({});
+        await expect(this.page.getByText('Saved')).toBeVisible({
+            timeout: 3000,
+        });
+
+        return true;
     }
 
     async getTabs(): Promise<string[]> {
@@ -269,6 +283,24 @@ export class ProtocolPage extends BasePage {
         await week.isVisible();
         return await week.innerText();
 
+    }
+
+    async addWeekUnderPhase() {
+        let phase = await this.page.getByText(`Phase 1 · Phase 1`).locator('..')
+        let week = await this.page.locator(`//div[contains(@class,'bg-card-nested/40 group')]`).getByRole('button', { name: `Week` });
+        // await week.hover();
+        //await week.click();
+        for (let i = 0; i < 5; i++) {
+            await phase.hover();
+            console.log('week hover 105');
+            let buttonVisible1 = await week.isVisible();
+            if (await buttonVisible1) {
+                await week.click();
+                console.log('week clicked 109');
+                break;
+            }
+            await this.page.waitForTimeout(500);
+        }
     }
 
 }

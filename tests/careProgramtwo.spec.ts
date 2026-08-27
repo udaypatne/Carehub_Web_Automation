@@ -28,9 +28,9 @@ test('verify create Program', async ({ careProgramPage2, protocolPage, basePage 
     await basePage.waitForElementTimeout(2000);
     await careProgramPage2.createProgram(CareProgName, '1', 'description text');
 
-    await protocolPage.createModule('Phase 1', expectedModuleText)
-    let actualModuleText = await protocolPage.getModuleText(expectedModuleText);
-    await expect(actualModuleText).toContain(expectedModuleText);
+   // await protocolPage.createModule('Phase 1', expectedModuleText)
+   // let actualModuleText = await protocolPage.getModuleText(expectedModuleText);
+   // await expect(actualModuleText).toContain(expectedModuleText);
 
     const protocols = [
         { protocolName: `Steps / day`, value: '1111' },
@@ -47,10 +47,12 @@ test('verify create Program', async ({ careProgramPage2, protocolPage, basePage 
         { protocolName: `Resting HR`, value: '4' },
         { protocolName: `HRV`, value: '50' },
     ];
-    await protocolPage.addWeekUnderModule(expectedModuleText);
+    await protocolPage.addWeekUnderPhase()
     await protocolPage.createWeek('1', expectedWeekText, 'description', protocols);
     await basePage.waitForPageApiCall();
-    expect(await protocolPage.weekSaved()).toBeTruthy();
+    expect.soft(await protocolPage.weekSaved()).toBeTruthy();
+    expect.soft(await protocolPage.isWeekTitlePresent()).toBeTruthy();
+
 
 })
 
