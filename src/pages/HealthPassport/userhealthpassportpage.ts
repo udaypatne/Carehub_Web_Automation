@@ -98,6 +98,55 @@ export class userhealthpassportpage extends BasePage {
         return result.text;
     }
 
+    async viewHealthPassportt(): Promise<string> {
+    const context = this.page.context();
+
+    const [pdfPage] = await Promise.all([
+        context.waitForEvent('page'),
+        this.veiwHealthPassportReport.click()
+    ]);
+
+    await pdfPage.waitForLoadState('domcontentloaded', {
+        timeout: 30000
+    });
+
+    const pdfUrl = pdfPage.url();
+
+    console.log('PDF URL:', pdfUrl);
+
+    if (!pdfUrl || pdfUrl === 'about:blank') {
+        throw new Error(
+            `PDF page did not navigate to a valid URL. Current URL: ${pdfUrl}`
+        );
+    }
+
+    const response = await context.request.get(pdfUrl);
+
+    if (!response.ok()) {
+        throw new Error(
+            `Failed to download PDF: ${response.status()} ${response.statusText()}`
+        );
+    }
+
+    const pdfBuffer = await response.body();
+
+    if (pdfBuffer.length === 0) {
+        throw new Error('PDF response is empty');
+    }
+
+    const parser = new PDFParse({
+        data: pdfBuffer
+    });
+
+    try {
+        const result = await parser.getText();
+        return result.text;
+    } finally {
+        await parser.destroy();
+    }
+}
+
+
     async clickOnTab(tabName: string): Promise<void> {
         await this.page.getByRole('tab', { name: tabName }).click();
     }

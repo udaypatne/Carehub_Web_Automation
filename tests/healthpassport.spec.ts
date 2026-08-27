@@ -177,7 +177,7 @@ test('verify 30 days health passport report PDF data ', async ({ healthUserListP
     await healthUserListPage.selectUser(userEmail);
     await userHealthPassportPage.selectDays('30 Days');
 
-    let result = await userHealthPassportPage.viewHealthPassport4();
+    let result = await userHealthPassportPage.viewHealthPassportt();
     await basePage.waitForTime(2000);
     const reportPeriodRegex =
         /Report Period:\s*(\d+)\s*days;\s*(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/;
@@ -265,7 +265,7 @@ test('verify 90 days health passport report PDF data ', async ({ healthUserListP
     await healthUserListPage.selectUser(userEmail);
     await userHealthPassportPage.selectDays('90 Days');
 
-    let result = await userHealthPassportPage.viewHealthPassport4();
+    let result = await userHealthPassportPage.viewHealthPassportt();
     await basePage.waitForTime(2000);
     const reportPeriodRegex =
         /Report Period:\s*(\d+)\s*days;\s*(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/;
@@ -304,7 +304,6 @@ test('verify 90 days health passport report PDF data ', async ({ healthUserListP
 
     expect.soft(result).toContain('Resting Heart Rate (RHR)');
     expect.soft(result).toContain('Heart Rate Variability (HRV)');
-
 
     expect.soft(result).toMatch(
         /Latest:\s*\d+\/\d+\s*mmHg/
@@ -1146,13 +1145,13 @@ test('verify 90 days of data for Cardiac', async ({
         .filter(row => row.length > 0);
 
     const expectedTitle = 'Cardiac';
-    const expectedHeader ='Patient,Date,Metric,Value';
+    const expectedHeader = 'Patient,Date,Metric,Value';
 
-    expect.soft( rows[0], 'CSV should contain Cardiac title' ).toBe(expectedTitle);
+    expect.soft(rows[0], 'CSV should contain Cardiac title').toBe(expectedTitle);
 
     const headerIndex = rows.findIndex(row => row === expectedHeader);
 
-    expect.soft( headerIndex,'Cardiac CSV header should exist').toBeGreaterThanOrEqual(0);
+    expect.soft(headerIndex, 'Cardiac CSV header should exist').toBeGreaterThanOrEqual(0);
 
     if (headerIndex === -1) {
         throw new Error(
@@ -1160,13 +1159,13 @@ test('verify 90 days of data for Cardiac', async ({
         );
     }
 
-    const patientRegex =/^[A-Za-z]+(?: [A-Za-z]+)+$/;
-    const dateRegex =/^(0[1-9]|1[0-2])[\/-](0[1-9]|[12]\d|3[01])[\/-]\d{4}$/;
-    const cardiacMetricRegex =/^(?:Resting Heart Rate|Heart Rate Variability \(RMSSD\)|Respiratory Rate)$/;
-    const valueRegex =/^-?\d+(?:\.\d+)?$/;
+    const patientRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/;
+    const dateRegex = /^(0[1-9]|1[0-2])[\/-](0[1-9]|[12]\d|3[01])[\/-]\d{4}$/;
+    const cardiacMetricRegex = /^(?:Resting Heart Rate|Heart Rate Variability \(RMSSD\)|Respiratory Rate)$/;
+    const valueRegex = /^-?\d+(?:\.\d+)?$/;
     const dataRows = rows.slice(headerIndex + 1);
 
-    expect.soft( dataRows.length,'Cardiac CSV should contain at least one record').toBeGreaterThan(0);
+    expect.soft(dataRows.length, 'Cardiac CSV should contain at least one record').toBeGreaterThan(0);
 
     const foundMetrics = new Set<string>();
     const dateMetricKeys: string[] = [];
@@ -1177,21 +1176,21 @@ test('verify 90 days of data for Cardiac', async ({
         console.log(`Validating Cardiac CSV row ${rowNumber}: ${row}`);
         const columns = row.split(',');
 
-        expect.soft( columns.length, `Row ${rowNumber}: Expected 4 columns` ).toBe(4);
+        expect.soft(columns.length, `Row ${rowNumber}: Expected 4 columns`).toBe(4);
 
         if (columns.length !== 4) {
             continue;
         }
 
-        const [ patient, date, metric, value] = columns.map(column => column.trim());
+        const [patient, date, metric, value] = columns.map(column => column.trim());
 
-        expect.soft( patient,`Row ${rowNumber}: Invalid Patient "${patient}"`).toMatch(patientRegex);
-        expect.soft( date, `Row ${rowNumber}: Invalid Date "${date}"`).toMatch(dateRegex);
-        expect.soft( metric, `Row ${rowNumber}: Invalid Cardiac Metric "${metric}"` ).toMatch(cardiacMetricRegex);
+        expect.soft(patient, `Row ${rowNumber}: Invalid Patient "${patient}"`).toMatch(patientRegex);
+        expect.soft(date, `Row ${rowNumber}: Invalid Date "${date}"`).toMatch(dateRegex);
+        expect.soft(metric, `Row ${rowNumber}: Invalid Cardiac Metric "${metric}"`).toMatch(cardiacMetricRegex);
 
-        expect.soft( value,`Row ${rowNumber}: Invalid Cardiac Value "${value}"`).toMatch(valueRegex);
+        expect.soft(value, `Row ${rowNumber}: Invalid Cardiac Value "${value}"`).toMatch(valueRegex);
 
-        expect.soft( value, `Row ${rowNumber}: Cardiac Value should not be empty`).not.toBe('');
+        expect.soft(value, `Row ${rowNumber}: Cardiac Value should not be empty`).not.toBe('');
 
         if (cardiacMetricRegex.test(metric)) {
             foundMetrics.add(metric);
@@ -1223,26 +1222,26 @@ test('verify 90 days of data for Cardiac', async ({
     expect.soft(foundMetrics.size,
         'Cardiac CSV should contain exactly 3 different metrics').toBe(3);
 
-    const uniqueDateMetricKeys =new Set(dateMetricKeys);
+    const uniqueDateMetricKeys = new Set(dateMetricKeys);
     expect.soft(uniqueDateMetricKeys.size, 'Cardiac CSV should not contain duplicate Date + Metric combinations'
     ).toBe(dateMetricKeys.length);
 
     expect.soft(csvContent,
         'CSV should contain Cardiac').toContain('Cardiac');
 
-    expect.soft( csvContent, 'CSV should contain Patient').toContain('Patient');
-    expect.soft( csvContent,'CSV should contain Date').toContain('Date');
-    expect.soft(csvContent,'CSV should contain Metric').toContain('Metric');
-    expect.soft( csvContent, 'CSV should contain Value').toContain('Value');
+    expect.soft(csvContent, 'CSV should contain Patient').toContain('Patient');
+    expect.soft(csvContent, 'CSV should contain Date').toContain('Date');
+    expect.soft(csvContent, 'CSV should contain Metric').toContain('Metric');
+    expect.soft(csvContent, 'CSV should contain Value').toContain('Value');
 
     expect.soft(csvContent, 'CSV should contain Resting Heart Rate').toContain('Resting Heart Rate');
-    expect.soft(csvContent, 'CSV should contain Heart Rate Variability (RMSSD)' ).toContain('Heart Rate Variability (RMSSD)');
+    expect.soft(csvContent, 'CSV should contain Heart Rate Variability (RMSSD)').toContain('Heart Rate Variability (RMSSD)');
     expect.soft(csvContent,
         'CSV should contain Respiratory Rate'
     ).toContain('Respiratory Rate');
 
-    console.log( 'Cardiac metrics found:',  [...foundMetrics] );
-    console.log( 'Unique Date + Metric records:', uniqueDateMetricKeys.size );
+    console.log('Cardiac metrics found:', [...foundMetrics]);
+    console.log('Unique Date + Metric records:', uniqueDateMetricKeys.size);
 
 });
 
@@ -1347,7 +1346,7 @@ test('verify 90 days of data for Blood Pressure', async ({
         }
 
         const [
-            patient, date,time,systolic,diastolic, source,device
+            patient, date, time, systolic, diastolic, source, device
         ] = columns.map(column => column.trim());
 
         expect.soft(
@@ -1393,14 +1392,14 @@ test('verify 90 days of data for Blood Pressure', async ({
             `Row ${rowNumber}: Invalid Source "${source}"`
         ).toMatch(sourceRegex);
 
-    
+
 
         expect.soft(
             device,
             `Row ${rowNumber}: Device column should exist`
         ).not.toBeUndefined();
 
-    
+
 
         if (sourceRegex.test(source)) {
             foundSources.add(source);
@@ -1601,7 +1600,7 @@ test('verify 30 days of data for Blood Pressure', async ({
         }
 
         const [
-            patient, date,time,systolic,diastolic, source,device
+            patient, date, time, systolic, diastolic, source, device
         ] = columns.map(column => column.trim());
 
         expect.soft(
