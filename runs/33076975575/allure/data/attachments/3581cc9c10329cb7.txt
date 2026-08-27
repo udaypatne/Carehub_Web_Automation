@@ -1,0 +1,2 @@
+Login button clicked
+Total Nutrition records found: 23
