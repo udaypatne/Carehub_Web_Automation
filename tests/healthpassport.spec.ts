@@ -337,7 +337,7 @@ test('verify 90 days health passport report PDF data ', async ({ healthUserListP
 })
 
 
-test('verify Weight csv ', async ({ healthUserListPage, userHealthPassportPage, basePage }) => {
+test('verify Weight csv for 30 days ', async ({ healthUserListPage, userHealthPassportPage, basePage }) => {
 
     const downloadPath = path.join(
         process.cwd(),
@@ -367,7 +367,7 @@ test('verify Weight csv ', async ({ healthUserListPage, userHealthPassportPage, 
 
 })
 
-test('verify Weight csv  ', async ({
+test('verify Weight csv for 90 days  ', async ({
     healthUserListPage,
     userHealthPassportPage,
     basePage
@@ -525,126 +525,6 @@ test('verify Weight csv  ', async ({
     expect.soft(csvContent).toContain('BMI');
     expect.soft(csvContent).toContain('Body Fat %');
     expect.soft(csvContent).toContain('Source');
-});
-
-test('verify Glucose csv for 30 days ', async ({ healthUserListPage, userHealthPassportPage, basePage }) => {
-
-    const downloadPath = path.join(
-        process.cwd(),
-        'downloads',
-        'Health_Passport',
-        'Glucose'
-    );
-    await healthUserListPage.searchUser(userEmail);
-    await healthUserListPage.selectUser(userEmail);
-    await userHealthPassportPage.clickOnTab('Glucose');
-
-    await userHealthPassportPage.selectDays('30 Days');
-    const filePath = await userHealthPassportPage.downloadCsv('Glucose', downloadPath);
-
-    const csvContent = fs.readFileSync(filePath, 'utf-8');
-    const rows = csvContent
-        .split(/\r?\n/)
-        .map(row => row.trim())
-        .filter(row => row.length > 0);
-
-    const expectedHeader =
-        'Patient,Date,Avg Glucose,Min Glucose,Max Glucose,Sample Count';
-
-    const headerIndex = rows.findIndex(
-        row => row === expectedHeader
-    );
-
-    expect.soft(
-        headerIndex,
-        'Glucose CSV header should exist'
-    ).toBeGreaterThanOrEqual(0);
-
-    if (headerIndex === -1) {
-        throw new Error(
-            `Glucose CSV header was not found.\nActual CSV:\n${csvContent}`
-        );
-    }
-
-    expect.soft(
-        rows[0],
-        'CSV should contain Glucose title'
-    ).toBe('Glucose');
-
-    const patientRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/;
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12]\d|3[01])\/\d{4}$/;
-    const optionalNumberRegex = /^(?:\d+(?:\.\d{1,2})?)?$/;
-    const dataRows = rows.slice(headerIndex + 1);
-
-    console.log(`Total Glucose records found: ${dataRows.length}`);
-
-    expect.soft(dataRows.length, 'Glucose CSV should contain at least one record').toBeGreaterThan(0);
-
-    const glucoseDates: string[] = [];
-
-    for (let i = 0; i < dataRows.length; i++) {
-        const rowNumber = headerIndex + i + 2;
-        const row = dataRows[i];
-        const columns = row.split(',');
-
-        expect.soft(
-            columns.length,
-            `Row ${rowNumber}: Expected 6 columns`
-        ).toBe(6);
-
-        const [patient, date, avgGlucose, minGlucose, maxGlucose, sampleCount] = columns;
-
-        expect.soft(
-            patient,
-            `Row ${rowNumber}: Invalid Patient`
-        ).toMatch(patientRegex);
-
-        expect.soft(
-            date,
-            `Row ${rowNumber}: Invalid Date`
-        ).toMatch(dateRegex);
-
-        expect.soft(
-            avgGlucose,
-            `Row ${rowNumber}: Invalid Avg Glucose`
-        ).toMatch(optionalNumberRegex);
-
-        expect.soft(
-            minGlucose,
-            `Row ${rowNumber}: Invalid Min Glucose`
-        ).toMatch(optionalNumberRegex);
-
-        expect.soft(
-            maxGlucose,
-            `Row ${rowNumber}: Invalid Max Glucose`
-        ).toMatch(optionalNumberRegex);
-
-        expect.soft(
-            sampleCount,
-            `Row ${rowNumber}: Invalid Sample Count`
-        ).toMatch(optionalNumberRegex);
-
-
-        if (date.match(dateRegex)) {
-            glucoseDates.push(date);
-        }
-    }
-
-    const uniqueDates = new Set(glucoseDates);
-
-    expect.soft(
-        uniqueDates.size,
-        'Glucose CSV should not contain duplicate dates'
-    ).toBe(glucoseDates.length);
-
-    expect.soft(csvContent).toContain('Glucose');
-    expect.soft(csvContent).toContain('Patient');
-    expect.soft(csvContent).toContain('Date');
-    expect.soft(csvContent).toContain('Avg Glucose');
-    expect.soft(csvContent).toContain('Min Glucose');
-    expect.soft(csvContent).toContain('Max Glucose');
-    expect.soft(csvContent).toContain('Sample Count');
-
 });
 
 test('verify 90 days of data for Glucose ', async ({ healthUserListPage, userHealthPassportPage, basePage }) => {
@@ -1367,8 +1247,505 @@ test('verify 90 days of data for Cardiac', async ({
 });
 
 
+test('verify 90 days of data for Blood Pressure', async ({
+    healthUserListPage,
+    userHealthPassportPage
+}) => {
+
+    const downloadPath = path.join(
+        process.cwd(),
+        'downloads',
+        'Health_Passport',
+        'Blood Pressure'
+    );
+
+    await healthUserListPage.searchUser(userEmail);
+    await healthUserListPage.selectUser(userEmail);
+    await userHealthPassportPage.clickOnTab('Blood Pressure');
+    await userHealthPassportPage.selectDays('90 Days');
+
+    const filePath = await userHealthPassportPage.downloadCsv(
+        'Blood Pressure',
+        downloadPath
+    );
+
+    const csvContent = fs.readFileSync(filePath, 'utf-8');
+
+    const rows = csvContent
+        .split(/\r?\n/)
+        .map(row => row.trim())
+        .filter(row => row.length > 0);
+
+    const expectedTitle = 'Blood Pressure';
+
+    const expectedHeader =
+        'Patient,Date,Time,Systolic (mmHg),Diastolic (mmHg),Source,Device';
+
+    expect.soft(
+        rows[0],
+        'CSV should contain Blood Pressure title'
+    ).toBe(expectedTitle);
+
+    const headerIndex = rows.findIndex(
+        row => row === expectedHeader
+    );
+
+    expect.soft(
+        headerIndex,
+        'Blood Pressure CSV header should exist'
+    ).toBeGreaterThanOrEqual(0);
+
+    if (headerIndex === -1) {
+        throw new Error(
+            `Blood Pressure CSV header was not found.\n\nActual CSV:\n${csvContent}`
+        );
+    }
+    const patientRegex =
+        /^[A-Za-z]+(?: [A-Za-z]+)+$/;
+
+    const dateRegex =
+        /^(0[1-9]|1[0-2])[\/-](0[1-9]|[12]\d|3[01])[\/-]\d{4}$/;
+
+    const timeRegex =
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+\+05:30$/;
+
+    const bloodPressureValueRegex =
+        /^\d+$/;
+
+
+    const sourceRegex =
+        /^(?:manual|ai_agent|apple_health)$/;
+
+    const dataRows = rows.slice(headerIndex + 1);
+
+    expect.soft(
+        dataRows.length,
+        'Blood Pressure CSV should contain at least one record'
+    ).toBeGreaterThan(0);
+
+    const foundSources = new Set<string>();
+    const dateTimeKeys: string[] = [];
+
+    for (let i = 0; i < dataRows.length; i++) {
+
+        const rowNumber = headerIndex + i + 2;
+        const row = dataRows[i];
+
+        console.log(
+            `Validating Blood Pressure CSV row ${rowNumber}: ${row}`
+        );
+
+        const columns = row.split(',');
+
+        expect.soft(
+            columns.length,
+            `Row ${rowNumber}: Expected 7 columns`
+        ).toBe(7);
+
+        if (columns.length !== 7) {
+            continue;
+        }
+
+        const [
+            patient, date,time,systolic,diastolic, source,device
+        ] = columns.map(column => column.trim());
+
+        expect.soft(
+            patient,
+            `Row ${rowNumber}: Invalid Patient "${patient}"`
+        ).toMatch(patientRegex);
 
 
 
+        expect.soft(
+            date,
+            `Row ${rowNumber}: Invalid Date "${date}"`
+        ).toMatch(dateRegex);
+
+        expect.soft(
+            time,
+            `Row ${rowNumber}: Invalid Time "${time}"`
+        ).toMatch(timeRegex);
+
+        expect.soft(
+            systolic,
+            `Row ${rowNumber}: Invalid Systolic value "${systolic}"`
+        ).toMatch(bloodPressureValueRegex);
+
+        expect.soft(
+            systolic,
+            `Row ${rowNumber}: Systolic value should not be empty`
+        ).not.toBe('');
+
+
+        expect.soft(
+            diastolic,
+            `Row ${rowNumber}: Invalid Diastolic value "${diastolic}"`
+        ).toMatch(bloodPressureValueRegex);
+
+        expect.soft(
+            diastolic,
+            `Row ${rowNumber}: Diastolic value should not be empty`
+        ).not.toBe('');
+
+        expect.soft(
+            source,
+            `Row ${rowNumber}: Invalid Source "${source}"`
+        ).toMatch(sourceRegex);
+
+    
+
+        expect.soft(
+            device,
+            `Row ${rowNumber}: Device column should exist`
+        ).not.toBeUndefined();
+
+    
+
+        if (sourceRegex.test(source)) {
+            foundSources.add(source);
+        }
+
+
+
+        if (
+            dateRegex.test(date) &&
+            timeRegex.test(time)
+        ) {
+            dateTimeKeys.push(
+                `${date}-${time}`
+            );
+        }
+    }
+
+    const expectedSources = [
+        'manual',
+        'ai_agent',
+        'apple_health'
+    ];
+
+    for (const expectedSource of expectedSources) {
+
+        expect.soft(
+            foundSources.has(expectedSource),
+            `Blood Pressure CSV should contain source: ${expectedSource}`
+        ).toBe(true);
+    }
+
+
+    expect.soft(
+        foundSources.size,
+        'Blood Pressure CSV should contain exactly 3 different sources'
+    ).toBe(3);
+
+    const uniqueDateTimeKeys = new Set(dateTimeKeys);
+
+    expect.soft(
+        uniqueDateTimeKeys.size,
+        'Blood Pressure CSV should not contain duplicate Date + Time combinations'
+    ).toBe(dateTimeKeys.length);
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Blood Pressure'
+    ).toContain('Blood Pressure');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Patient'
+    ).toContain('Patient');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Date'
+    ).toContain('Date');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Time'
+    ).toContain('Time');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Systolic (mmHg)'
+    ).toContain('Systolic (mmHg)');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Diastolic (mmHg)'
+    ).toContain('Diastolic (mmHg)');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Source'
+    ).toContain('Source');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Device'
+    ).toContain('Device');
+
+    console.log(
+        'Blood Pressure sources found:',
+        [...foundSources]
+    );
+
+    console.log(
+        'Unique Date + Time records:',
+        uniqueDateTimeKeys.size
+    );
+
+    console.log(
+        'Total Blood Pressure records:',
+        dataRows.length
+    );
+});
+
+
+test('verify 30 days of data for Blood Pressure', async ({
+    healthUserListPage,
+    userHealthPassportPage
+}) => {
+    const downloadPath = path.join(
+        process.cwd(),
+        'downloads',
+        'Health_Passport',
+        'Blood Pressure'
+    );
+
+    await healthUserListPage.searchUser(userEmail);
+    await healthUserListPage.selectUser(userEmail);
+    await userHealthPassportPage.clickOnTab('Blood Pressure');
+    await userHealthPassportPage.selectDays('90 Days');
+
+    const filePath = await userHealthPassportPage.downloadCsv(
+        'Blood Pressure',
+        downloadPath
+    );
+
+    const csvContent = fs.readFileSync(filePath, 'utf-8');
+
+    const rows = csvContent
+        .split(/\r?\n/)
+        .map(row => row.trim())
+        .filter(row => row.length > 0);
+
+    const expectedTitle = 'Blood Pressure';
+
+    const expectedHeader =
+        'Patient,Date,Time,Systolic (mmHg),Diastolic (mmHg),Source,Device';
+
+    expect.soft(
+        rows[0],
+        'CSV should contain Blood Pressure title'
+    ).toBe(expectedTitle);
+
+    const headerIndex = rows.findIndex(
+        row => row === expectedHeader
+    );
+
+    expect.soft(
+        headerIndex,
+        'Blood Pressure CSV header should exist'
+    ).toBeGreaterThanOrEqual(0);
+
+    if (headerIndex === -1) {
+        throw new Error(
+            `Blood Pressure CSV header was not found.\n\nActual CSV:\n${csvContent}`
+        );
+    }
+    const patientRegex =
+        /^[A-Za-z]+(?: [A-Za-z]+)+$/;
+
+    const dateRegex =
+        /^(0[1-9]|1[0-2])[\/-](0[1-9]|[12]\d|3[01])[\/-]\d{4}$/;
+
+    const timeRegex =
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+\+05:30$/;
+
+    const bloodPressureValueRegex =
+        /^\d+$/;
+
+
+    const sourceRegex =
+        /^(?:manual|ai_agent|apple_health)$/;
+
+    const dataRows = rows.slice(headerIndex + 1);
+
+    expect.soft(
+        dataRows.length,
+        'Blood Pressure CSV should contain at least one record'
+    ).toBeGreaterThan(0);
+
+    const foundSources = new Set<string>();
+    const dateTimeKeys: string[] = [];
+
+    for (let i = 0; i < dataRows.length; i++) {
+
+        const rowNumber = headerIndex + i + 2;
+        const row = dataRows[i];
+
+        console.log(
+            `Validating Blood Pressure CSV row ${rowNumber}: ${row}`
+        );
+
+        const columns = row.split(',');
+
+        expect.soft(
+            columns.length,
+            `Row ${rowNumber}: Expected 7 columns`
+        ).toBe(7);
+
+        if (columns.length !== 7) {
+            continue;
+        }
+
+        const [
+            patient, date,time,systolic,diastolic, source,device
+        ] = columns.map(column => column.trim());
+
+        expect.soft(
+            patient,
+            `Row ${rowNumber}: Invalid Patient "${patient}"`
+        ).toMatch(patientRegex);
+
+        expect.soft(
+            date,
+            `Row ${rowNumber}: Invalid Date "${date}"`
+        ).toMatch(dateRegex);
+
+        expect.soft(
+            time,
+            `Row ${rowNumber}: Invalid Time "${time}"`
+        ).toMatch(timeRegex);
+
+        expect.soft(
+            systolic,
+            `Row ${rowNumber}: Invalid Systolic value "${systolic}"`
+        ).toMatch(bloodPressureValueRegex);
+
+        expect.soft(
+            systolic,
+            `Row ${rowNumber}: Systolic value should not be empty`
+        ).not.toBe('');
+
+
+        expect.soft(
+            diastolic,
+            `Row ${rowNumber}: Invalid Diastolic value "${diastolic}"`
+        ).toMatch(bloodPressureValueRegex);
+
+        expect.soft(
+            diastolic,
+            `Row ${rowNumber}: Diastolic value should not be empty`
+        ).not.toBe('');
+
+        expect.soft(
+            source,
+            `Row ${rowNumber}: Invalid Source "${source}"`
+        ).toMatch(sourceRegex);
+
+
+        expect.soft(
+            device,
+            `Row ${rowNumber}: Device column should exist`
+        ).not.toBeUndefined();
+
+        if (sourceRegex.test(source)) {
+            foundSources.add(source);
+        }
+
+        if (
+            dateRegex.test(date) &&
+            timeRegex.test(time)
+        ) {
+            dateTimeKeys.push(
+                `${date}-${time}`
+            );
+        }
+    }
+
+    const expectedSources = [
+        'manual',
+        'ai_agent',
+        'apple_health'
+    ];
+
+    for (const expectedSource of expectedSources) {
+
+        expect.soft(
+            foundSources.has(expectedSource),
+            `Blood Pressure CSV should contain source: ${expectedSource}`
+        ).toBe(true);
+    }
+
+
+    expect.soft(
+        foundSources.size,
+        'Blood Pressure CSV should contain exactly 3 different sources'
+    ).toBe(3);
+
+    const uniqueDateTimeKeys = new Set(dateTimeKeys);
+
+    expect.soft(
+        uniqueDateTimeKeys.size,
+        'Blood Pressure CSV should not contain duplicate Date + Time combinations'
+    ).toBe(dateTimeKeys.length);
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Blood Pressure'
+    ).toContain('Blood Pressure');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Patient'
+    ).toContain('Patient');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Date'
+    ).toContain('Date');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Time'
+    ).toContain('Time');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Systolic (mmHg)'
+    ).toContain('Systolic (mmHg)');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Diastolic (mmHg)'
+    ).toContain('Diastolic (mmHg)');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Source'
+    ).toContain('Source');
+
+    expect.soft(
+        csvContent,
+        'CSV should contain Device'
+    ).toContain('Device');
+
+    console.log(
+        'Blood Pressure sources found:',
+        [...foundSources]
+    );
+
+    console.log(
+        'Unique Date + Time records:',
+        uniqueDateTimeKeys.size
+    );
+
+    console.log(
+        'Total Blood Pressure records:',
+        dataRows.length
+    );
+});
 
 
