@@ -75,7 +75,8 @@ export class userhealthpassportpage extends BasePage {
             context.waitForEvent('page'),
             this.veiwHealthPassportReport.click()
         ]);
-        await pdfPage.waitForLoadState('domcontentloaded');
+        // await pdfPage.waitForLoadState('domcontentloaded');
+        await this.page.waitForTimeout(3000)
         const pdfUrl = pdfPage.url();
         console.log('PDF URL:', pdfUrl);
         // Get PDF using the browser context

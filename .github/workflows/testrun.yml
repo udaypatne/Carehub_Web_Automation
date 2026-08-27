@@ -331,7 +331,7 @@ jobs:
 
           from: "Predixtions Automation <${{ secrets.EMAIL_USERNAME }}>"
           
-          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com
+          to: uday.patne@predixtions.com,rohit.baghela@predixtions.com,knm@predixtions.com
 
           subject: "🎭 Predixtions Admin ${{ github.event.inputs.environment || 'QA' }} Automation Report - Run #${{ github.run_number }}"
 
