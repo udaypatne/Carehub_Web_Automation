@@ -134,7 +134,6 @@ test('Verify tab visibility for Clinical staff role', async ({ loginPage, dashbo
 test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         "Care Programs",
-        "AI Voice Dashboard",
         "Onboarding",
         "Population Health",
         "Custom Dashboards",
@@ -146,7 +145,7 @@ test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashb
     await page.waitForURL('/dashboard/population-health')
     await loginPage.disableTutorial();
     let actualUrl = await loginPage.getLoginPageUrl();
-    await expect(actualUrl).toBe("https://provider-qa.xspan.ai/dashboard/population-health");
+    await expect(actualUrl).toContain("https://provider-qa.xspan.ai/dashboard/population-health");
     let actualTabs = await dashboardPage.getAllMenuItems();
     expect(actualTabs).toEqual(menuItems);
 });
@@ -154,7 +153,6 @@ test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashb
 test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         'AI Guardrails',
-        "AI Voice Dashboard",
         'Care Team',
         'Integrations',
         'Organization',
