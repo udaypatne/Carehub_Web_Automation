@@ -1,0 +1,331 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: healthpassport.spec.ts >> verify 30 days health passport report PDF data 
+- Location: tests/healthpassport.spec.ts:174:5
+
+# Error details
+
+```
+Test timeout of 120000ms exceeded.
+```
+
+```
+Error: page.waitForLoadState: Test timeout of 120000ms exceeded.
+=========================== logs ===========================
+  "networkidle" event fired
+============================================================
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - region "Notifications alt+T"
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - generic [ref=e6]:
+            - img "XSpan Logo" [ref=e7]
+            - generic [ref=e8]:
+              - generic [ref=e9]: XSpan
+              - generic [ref=e10]: The Physics of Biology
+          - button "Toggle sidebar" [ref=e11] [cursor=pointer]
+        - textbox "Search patients..." [ref=e16]
+        - navigation [ref=e17]:
+          - link "Dashboard" [ref=e18] [cursor=pointer]:
+            - /url: /dashboard
+          - link "AI Voice Dashboard" [ref=e25] [cursor=pointer]:
+            - /url: /dashboard/ai-voice-dashboard
+          - link "Work Queue" [ref=e28] [cursor=pointer]:
+            - /url: /dashboard/work-queue
+          - link "Patient List" [ref=e34] [cursor=pointer]:
+            - /url: /dashboard/patients
+          - link "Health Passport" [ref=e41] [cursor=pointer]:
+            - /url: /dashboard/reporting
+          - link "Care Programs" [ref=e46] [cursor=pointer]:
+            - /url: /dashboard/programs
+          - link "Onboarding" [ref=e51] [cursor=pointer]:
+            - /url: /dashboard/onboarding
+          - link "Population Health" [ref=e56] [cursor=pointer]:
+            - /url: /dashboard/population-health
+          - link "Custom Dashboards" [ref=e60] [cursor=pointer]:
+            - /url: /dashboard/custom-dashboards
+          - link "Medication Adherence" [ref=e65] [cursor=pointer]:
+            - /url: /dashboard/adherence
+          - link "AI Guardrails 62" [ref=e70] [cursor=pointer]:
+            - /url: /dashboard/ai-review
+            - generic [ref=e74]: AI Guardrails
+            - generic [ref=e75]: "62"
+          - link "Rewards Engine" [ref=e76] [cursor=pointer]:
+            - /url: /dashboard/motivation
+          - link "Reward Milestones" [ref=e84] [cursor=pointer]:
+            - /url: /dashboard/admin/rewards/milestones
+          - link "Care Team" [ref=e90] [cursor=pointer]:
+            - /url: /dashboard/providers
+          - link "Integrations" [ref=e96] [cursor=pointer]:
+            - /url: /dashboard/integrations
+          - link "Organization" [ref=e100] [cursor=pointer]:
+            - /url: /dashboard/settings/organizations
+      - generic [ref=e107]:
+        - link "Help" [ref=e108] [cursor=pointer]:
+          - /url: /dashboard/help
+        - link "Settings" [ref=e112] [cursor=pointer]:
+          - /url: /dashboard/settings
+        - link "Sam Voice Platform" [ref=e117] [cursor=pointer]:
+          - /url: /dashboard/sam-voice
+        - generic [ref=e123]:
+          - link "My profile" [ref=e124] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e125]: UN
+            - generic [ref=e126]:
+              - generic [ref=e127]: udayorgadmin name
+              - generic [ref=e128]: roleuserid+orgadmin@gmail.com
+          - button "Sign out" [ref=e129] [cursor=pointer]
+    - main [ref=e133]:
+      - generic [ref=e134]:
+        - generic [ref=e135]:
+          - generic [ref=e136]: Organization
+          - button "Organization" [ref=e137]:
+            - generic [ref=e138]: Fortis Test Hospital
+        - button "Guide Me" [ref=e143]
+        - generic [ref=e147]:
+          - navigation "Breadcrumb" [ref=e149]:
+            - link "Home" [ref=e151] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Health Passport" [ref=e155] [cursor=pointer]:
+              - /url: /dashboard/reporting
+            - generic "Uday Patne" [ref=e159]
+          - generic [ref=e161]:
+            - button "Back" [ref=e162]
+            - generic [ref=e165]:
+              - heading "Health Passport" [level=1] [ref=e166]
+              - paragraph [ref=e167]: Comprehensive health data across all domains.
+          - generic [ref=e168]:
+            - generic [ref=e170]:
+              - generic [ref=e171]: UP
+              - generic [ref=e173]:
+                - heading "Uday Patne" [level=1] [ref=e174]
+                - paragraph [ref=e175]:
+                  - generic [ref=e179]: udaypatneit@gmail.com
+                - paragraph [ref=e180]: "+918411011435"
+                - paragraph [ref=e183]: "DOJ: 07/02/2026 · DOB: 01/04/1989"
+              - generic [ref=e184]: active
+            - generic [ref=e186]:
+              - generic [ref=e187]:
+                - generic [ref=e188]:
+                  - generic [ref=e189]:
+                    - generic [ref=e190]: Time Window
+                    - generic [ref=e191]:
+                      - button "7 Days" [ref=e192]
+                      - button "30 Days" [ref=e193]
+                      - button "90 Days" [ref=e194]
+                  - generic [ref=e195]:
+                    - button "Export CSV" [ref=e196]
+                    - button "View Health Passport Report" [active] [ref=e201]
+                - tablist [ref=e205]:
+                  - tab "Overview" [selected] [ref=e206] [cursor=pointer]
+                  - tab "Weight" [ref=e207] [cursor=pointer]
+                  - tab "Glucose" [ref=e208] [cursor=pointer]
+                  - tab "Sleep" [ref=e209] [cursor=pointer]
+                  - tab "Activity" [ref=e210] [cursor=pointer]
+                  - tab "Nutrition" [ref=e211] [cursor=pointer]
+                  - tab "Water Intake" [ref=e212] [cursor=pointer]
+                  - tab "Cardiac" [ref=e213] [cursor=pointer]
+                  - tab "Blood Pressure" [ref=e214] [cursor=pointer]
+                  - tab "Temperature" [ref=e215] [cursor=pointer]
+                  - tab "Biomarkers" [ref=e216] [cursor=pointer]
+                  - tab "Body Scan" [ref=e217] [cursor=pointer]
+                  - tab "Medications" [ref=e218] [cursor=pointer]
+                  - tab "Supplements" [ref=e219] [cursor=pointer]
+                  - tab "Reports" [ref=e220] [cursor=pointer]
+              - tabpanel "Overview" [ref=e222]:
+                - generic [ref=e223]:
+                  - generic [ref=e224]:
+                    - button "Weight 321.9 lbs" [ref=e225] [cursor=pointer]:
+                      - generic [ref=e226]:
+                        - generic [ref=e227]: Weight
+                        - generic [ref=e235]:
+                          - generic [ref=e236]: "321.9"
+                          - generic [ref=e237]: lbs
+                    - button "BMI 49.4" [ref=e238] [cursor=pointer]:
+                      - generic [ref=e239]:
+                        - generic [ref=e240]: BMI
+                        - generic [ref=e247]: "49.4"
+                    - button "Glucose TIR 75 %" [ref=e250] [cursor=pointer]:
+                      - generic [ref=e251]:
+                        - generic [ref=e252]: Glucose TIR
+                        - generic [ref=e260]:
+                          - generic [ref=e261]: "75"
+                          - generic [ref=e262]: "%"
+                    - button "Avg Sleep (logged days) 6.3 hrs" [ref=e263] [cursor=pointer]:
+                      - generic [ref=e264]:
+                        - generic [ref=e265]: Avg Sleep (logged days)
+                        - generic [ref=e272]:
+                          - generic [ref=e273]: "6.3"
+                          - generic [ref=e274]: hrs
+                    - button "Avg Steps (logged days) 5,872" [ref=e275] [cursor=pointer]:
+                      - generic [ref=e276]:
+                        - generic [ref=e277]: Avg Steps (logged days)
+                        - generic [ref=e283]: 5,872
+                    - button "Avg Nutrition (logged days) 1636 cal/day" [ref=e286] [cursor=pointer]:
+                      - generic [ref=e287]:
+                        - generic [ref=e288]: Avg Nutrition (logged days)
+                        - generic [ref=e296]:
+                          - generic [ref=e297]: "1636"
+                          - generic [ref=e298]: cal/day
+                  - generic [ref=e299]:
+                    - heading "Connected Devices" [level=3] [ref=e300]
+                    - generic [ref=e301]:
+                      - generic [ref=e302]: XSpan.ai App
+                      - generic [ref=e306]:
+                        - generic [ref=e307]: Android
+                        - generic [ref=e308]: 1.24.8
+                      - generic [ref=e309]:
+                        - generic [ref=e310]:
+                          - generic [ref=e314]: Fitbit
+                          - generic [ref=e315]: Smartwatch
+                        - generic [ref=e316]: Disconnected · Last synced 07/16/2026
+                      - generic [ref=e317]: Apple Health connected
+        - generic [ref=e321]:
+          - generic [ref=e322]: © 2026 XSpan AI. All rights reserved.
+          - generic [ref=e323]: Version 1.24.5
+```
+
+# Test source
+
+```ts
+  1   | import { BasePage } from "../BasePage";
+  2   | import { Browser, Locator, Page } from "@playwright/test";
+  3   | import path from 'path';
+  4   | import { PDFParse } from 'pdf-parse';
+  5   | import fs from 'fs';
+  6   | 
+  7   | export class userhealthpassportpage extends BasePage {
+  8   | 
+  9   |     private readonly userName: Locator;
+  10  |     private readonly tabList: Locator;
+  11  |     private readonly timeWindowOptions: Locator;
+  12  |     private readonly exportCSV: Locator;
+  13  |     private readonly veiwHealthPassportReport: Locator;
+  14  | 
+  15  | 
+  16  |     constructor(page: Page) {
+  17  |         super(page);
+  18  | 
+  19  |         this.userName = this.page.locator(`//*[contains(@class,'flex items-center')]/div`).getByRole('heading', { level: 1 });
+  20  |         this.tabList = this.page.locator(`//div[contains(@class,'bg-panel-header')]//div[@role='tablist']/button`);
+  21  |         this.timeWindowOptions = this.page.getByText('Time Window').locator(`..//button`);
+  22  |         this.exportCSV = this.page.locator(`//div[contains(@class,'bg-panel')]`).getByText('Export CSV');
+  23  |         this.veiwHealthPassportReport = this.page.getByRole('button', { name: 'View Health Passport Report' });
+  24  | 
+  25  |     }
+  26  | 
+  27  |     async selectDays(name: string) {
+  28  |         let days = await this.page.locator(`//div[contains(@class,'bg-panel')]`).getByText(name);
+  29  |         await days.click()
+  30  | 
+  31  |     }
+  32  | 
+  33  |     async getTabText(): Promise<string[]> {
+  34  | 
+  35  |         await this.tabList.first().waitFor({
+  36  |             state: 'visible'
+  37  |         });
+  38  | 
+  39  |         return (await this.tabList.allTextContents())
+  40  |             .map(text => text.trim());
+  41  |     }
+  42  | 
+  43  |     async getTimeWindowsOptionText(): Promise<string[]> {
+  44  |         let tabName;
+  45  |         tabName = await this.tabList.allTextContents();
+  46  |         return tabName;
+  47  |     }
+  48  | 
+  49  |     async clickExportBtn(downloadPath: string): Promise<string> {
+  50  |         const [download] = await Promise.all([
+  51  |             this.page.waitForEvent('download'),
+  52  |             this.exportCSV.click()
+  53  |         ]);
+  54  |         const filePath = path.join(downloadPath, await download.suggestedFilename());
+  55  |         await download.saveAs(filePath);
+  56  |         return filePath;
+  57  |     }
+  58  | 
+  59  |     async viewHealthPassport(): Promise<string> {
+  60  |         // Wait for the new PDF tab/window while clicking the button
+  61  |         const [pdfPage] = await Promise.all([
+  62  |             this.page.context().waitForEvent('page'),
+  63  |             this.veiwHealthPassportReport.click()
+  64  |         ]);
+  65  |         await pdfPage.waitForLoadState('load');
+  66  |         const pdfContent = await pdfPage.locator('body').innerText();
+  67  |         return pdfContent;
+  68  |     }
+  69  | 
+  70  | 
+  71  |     async viewHealthPassport4(): Promise<string> {
+  72  |         const context = this.page.context();
+  73  | 
+  74  |         const [pdfPage] = await Promise.all([
+  75  |             context.waitForEvent('page'),
+  76  |             this.veiwHealthPassportReport.click()
+  77  |         ]);
+> 78  |         await pdfPage.waitForLoadState('domcontentloaded');
+      |                       ^ Error: page.waitForLoadState: Test timeout of 120000ms exceeded.
+  79  |         const pdfUrl = pdfPage.url();
+  80  |         console.log('PDF URL:', pdfUrl);
+  81  |         // Get PDF using the browser context
+  82  |         const response = await context.request.get(pdfUrl);
+  83  |         if (!response.ok()) {
+  84  |             throw new Error(
+  85  |                 `Failed to download PDF: ${response.status()} ${response.statusText()}`
+  86  |             );
+  87  |         }
+  88  |         // Get PDF as Buffer
+  89  |         const pdfBuffer = await response.body();
+  90  |         // Parse PDF
+  91  |         const parser = new PDFParse({
+  92  |             data: pdfBuffer
+  93  |         });
+  94  |         const result = await parser.getText();
+  95  |         //  console.log('PDF text:', result.text);
+  96  |         await parser.destroy();
+  97  |         return result.text;
+  98  |     }
+  99  | 
+  100 |     async clickOnTab(tabName: string): Promise<void> {
+  101 |         await this.page.getByRole('tab', { name: tabName }).click();
+  102 |     }
+  103 | 
+  104 |     async downloadCsv(
+  105 |         type: string,
+  106 |         downloadPath: string
+  107 |     ): Promise<string> {
+  108 | 
+  109 |         const [download] = await Promise.all([
+  110 |             this.page.waitForEvent('download'),
+  111 |             this.page.getByRole('button', {
+  112 |                 name: `Download ${type}`
+  113 |             }).click()
+  114 |         ]);
+  115 | 
+  116 |         const filePath = path.join(
+  117 |             downloadPath,
+  118 |             await download.suggestedFilename()
+  119 |         );
+  120 | 
+  121 |         await download.saveAs(filePath);
+  122 | 
+  123 |         return filePath;
+  124 |     }
+  125 | 
+  126 | }
+```
