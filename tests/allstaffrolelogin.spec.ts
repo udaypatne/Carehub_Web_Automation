@@ -8,6 +8,7 @@ test.beforeEach(async ({ loginPage }) => {
 test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         "Dashboard",
+        "AI Voice Dashboard",
         "Work Queue",
         "Patient List",
         "Health Passport",
@@ -34,6 +35,7 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
 
 test('Verify tab visibility for Physician staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
+        "AI Voice Dashboard",
         'Work Queue',
         'Patient List',
         'Health Passport',
@@ -52,6 +54,7 @@ test('Verify tab visibility for Physician staff role', async ({ loginPage, dashb
 
 test('Verify tab visibility for Nurse staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
+        "AI Voice Dashboard",
         'Work Queue',
         'Patient List',
         'Health Passport',
@@ -70,6 +73,7 @@ test('Verify tab visibility for Nurse staff role', async ({ loginPage, dashboard
 
 test('Verify tab visibility for Carecoordinator staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
+        "AI Voice Dashboard",
         'Work Queue',
         'Patient List',
         'Health Passport',
@@ -91,6 +95,7 @@ test('Verify tab visibility for Carecoordinator staff role', async ({ loginPage,
 
 test('Verify tab visibility for Dietician staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
+        "AI Voice Dashboard",
         'Work Queue',
         'Patient List',
         'Health Passport',
@@ -109,6 +114,7 @@ test('Verify tab visibility for Dietician staff role', async ({ loginPage, dashb
 test('Verify tab visibility for Clinical staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         'Dashboard',
+        "AI Voice Dashboard",
         'Work Queue',
         'Patient List',
         'Health Passport',
@@ -128,6 +134,7 @@ test('Verify tab visibility for Clinical staff role', async ({ loginPage, dashbo
 test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         "Care Programs",
+        "AI Voice Dashboard",
         "Onboarding",
         "Population Health",
         "Custom Dashboards",
@@ -147,6 +154,7 @@ test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashb
 test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         'AI Guardrails',
+        "AI Voice Dashboard",
         'Care Team',
         'Integrations',
         'Organization',
@@ -163,6 +171,7 @@ test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashb
 test('Verify tab visibility for Custom staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
         "Dashboard",
+        "AI Voice Dashboard",
         "Work Queue",
         "Patient List",
         "Health Passport",

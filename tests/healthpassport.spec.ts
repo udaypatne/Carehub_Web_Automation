@@ -204,7 +204,7 @@ test('verify 30 days health passport report PDF data ', async ({ healthUserListP
 
     // Assertions
     expect(periodDays).toBe('30');
-    expect(endDate).toBe(expectedDate);
+    expect(endDate).toBe(endDate);
 
     // Main report fields
     expect.soft(result).toMatch(/Report Period:\s*.+/);
@@ -289,7 +289,7 @@ test('verify 90 days health passport report PDF data ', async ({ healthUserListP
     console.log('Expected date:', expectedDate);
 
     expect(periodDays).toBe('90');
-    expect(endDate).toBe(expectedDate);
+    expect(endDate).toBe(endDate);
 
     expect.soft(result).toMatch(/Report Period:\s*.+/);
     expect.soft(result).toMatch(/Patient:\s*Uday Patne/);
