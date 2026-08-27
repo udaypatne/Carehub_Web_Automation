@@ -1,0 +1,2 @@
+Login button clicked
+Total Water Intake records found: 14

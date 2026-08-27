@@ -1,0 +1,140 @@
+Login button clicked
+Validating Cardiac CSV row 3: Uday Patne,07/13/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 4: Uday Patne,07/14/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 5: Uday Patne,07/15/2026,Resting Heart Rate,60
+Validating Cardiac CSV row 6: Uday Patne,07/16/2026,Resting Heart Rate,60
+Validating Cardiac CSV row 7: Uday Patne,07/17/2026,Resting Heart Rate,61
+Validating Cardiac CSV row 8: Uday Patne,07/18/2026,Resting Heart Rate,61
+Validating Cardiac CSV row 9: Uday Patne,07/19/2026,Resting Heart Rate,62
+Validating Cardiac CSV row 10: Uday Patne,07/20/2026,Resting Heart Rate,60
+Validating Cardiac CSV row 11: Uday Patne,07/21/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 12: Uday Patne,07/22/2026,Resting Heart Rate,58
+Validating Cardiac CSV row 13: Uday Patne,07/23/2026,Resting Heart Rate,58
+Validating Cardiac CSV row 14: Uday Patne,07/24/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 15: Uday Patne,07/25/2026,Resting Heart Rate,58
+Validating Cardiac CSV row 16: Uday Patne,07/27/2026,Resting Heart Rate,60
+Validating Cardiac CSV row 17: Uday Patne,07/28/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 18: Uday Patne,07/29/2026,Resting Heart Rate,59
+Validating Cardiac CSV row 19: Uday Patne,07/30/2026,Resting Heart Rate,60
+Validating Cardiac CSV row 20: Uday Patne,07/31/2026,Resting Heart Rate,62
+Validating Cardiac CSV row 21: Uday Patne,08/01/2026,Resting Heart Rate,62
+Validating Cardiac CSV row 22: Uday Patne,08/02/2026,Resting Heart Rate,61
+Validating Cardiac CSV row 23: Uday Patne,08/03/2026,Resting Heart Rate,61
+Validating Cardiac CSV row 24: Uday Patne,08/04/2026,Resting Heart Rate,62
+Validating Cardiac CSV row 25: Uday Patne,08/05/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 26: Uday Patne,08/06/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 27: Uday Patne,08/07/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 28: Uday Patne,08/09/2026,Resting Heart Rate,63
+Validating Cardiac CSV row 29: Uday Patne,08/10/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 30: Uday Patne,08/11/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 31: Uday Patne,08/12/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 32: Uday Patne,08/13/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 33: Uday Patne,08/14/2026,Resting Heart Rate,63
+Validating Cardiac CSV row 34: Uday Patne,08/15/2026,Resting Heart Rate,63
+Validating Cardiac CSV row 35: Uday Patne,08/16/2026,Resting Heart Rate,63
+Validating Cardiac CSV row 36: Uday Patne,08/17/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 37: Uday Patne,08/18/2026,Resting Heart Rate,66
+Validating Cardiac CSV row 38: Uday Patne,08/19/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 39: Uday Patne,08/20/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 40: Uday Patne,08/21/2026,Resting Heart Rate,66
+Validating Cardiac CSV row 41: Uday Patne,08/22/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 42: Uday Patne,08/23/2026,Resting Heart Rate,66
+Validating Cardiac CSV row 43: Uday Patne,08/24/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 44: Uday Patne,08/25/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 45: Uday Patne,08/26/2026,Resting Heart Rate,65
+Validating Cardiac CSV row 46: Uday Patne,08/27/2026,Resting Heart Rate,64
+Validating Cardiac CSV row 47: Uday Patne,07/13/2026,Heart Rate Variability (RMSSD),48.8355
+Validating Cardiac CSV row 48: Uday Patne,07/14/2026,Heart Rate Variability (RMSSD),49.1973
+Validating Cardiac CSV row 49: Uday Patne,07/15/2026,Heart Rate Variability (RMSSD),47.4165
+Validating Cardiac CSV row 50: Uday Patne,07/16/2026,Heart Rate Variability (RMSSD),45.6909
+Validating Cardiac CSV row 51: Uday Patne,07/17/2026,Heart Rate Variability (RMSSD),43.8702
+Validating Cardiac CSV row 52: Uday Patne,07/18/2026,Heart Rate Variability (RMSSD),50.2793
+Validating Cardiac CSV row 53: Uday Patne,07/19/2026,Heart Rate Variability (RMSSD),52.9844
+Validating Cardiac CSV row 54: Uday Patne,07/20/2026,Heart Rate Variability (RMSSD),45.8644
+Validating Cardiac CSV row 55: Uday Patne,07/21/2026,Heart Rate Variability (RMSSD),52.3529
+Validating Cardiac CSV row 56: Uday Patne,07/22/2026,Heart Rate Variability (RMSSD),57.5308
+Validating Cardiac CSV row 57: Uday Patne,07/23/2026,Heart Rate Variability (RMSSD),59.0938
+Validating Cardiac CSV row 58: Uday Patne,07/24/2026,Heart Rate Variability (RMSSD),53.3383
+Validating Cardiac CSV row 59: Uday Patne,07/25/2026,Heart Rate Variability (RMSSD),52.0933
+Validating Cardiac CSV row 60: Uday Patne,07/26/2026,Heart Rate Variability (RMSSD),79.2
+Validating Cardiac CSV row 61: Uday Patne,07/27/2026,Heart Rate Variability (RMSSD),52.5807
+Validating Cardiac CSV row 62: Uday Patne,07/28/2026,Heart Rate Variability (RMSSD),56.0136
+Validating Cardiac CSV row 63: Uday Patne,07/29/2026,Heart Rate Variability (RMSSD),43.0895
+Validating Cardiac CSV row 64: Uday Patne,07/30/2026,Heart Rate Variability (RMSSD),48.0646
+Validating Cardiac CSV row 65: Uday Patne,07/31/2026,Heart Rate Variability (RMSSD),55.5089
+Validating Cardiac CSV row 66: Uday Patne,08/01/2026,Heart Rate Variability (RMSSD),53.2128
+Validating Cardiac CSV row 67: Uday Patne,08/02/2026,Heart Rate Variability (RMSSD),53.0587
+Validating Cardiac CSV row 68: Uday Patne,08/03/2026,Heart Rate Variability (RMSSD),56.0849
+Validating Cardiac CSV row 69: Uday Patne,08/04/2026,Heart Rate Variability (RMSSD),50.3558
+Validating Cardiac CSV row 70: Uday Patne,08/05/2026,Heart Rate Variability (RMSSD),38.8729
+Validating Cardiac CSV row 71: Uday Patne,08/06/2026,Heart Rate Variability (RMSSD),47.75
+Validating Cardiac CSV row 72: Uday Patne,08/07/2026,Heart Rate Variability (RMSSD),42.3205
+Validating Cardiac CSV row 73: Uday Patne,08/09/2026,Heart Rate Variability (RMSSD),52.6138
+Validating Cardiac CSV row 74: Uday Patne,08/10/2026,Heart Rate Variability (RMSSD),41.1036
+Validating Cardiac CSV row 75: Uday Patne,08/11/2026,Heart Rate Variability (RMSSD),43.1439
+Validating Cardiac CSV row 76: Uday Patne,08/12/2026,Heart Rate Variability (RMSSD),51.079
+Validating Cardiac CSV row 77: Uday Patne,08/13/2026,Heart Rate Variability (RMSSD),44.5247
+Validating Cardiac CSV row 78: Uday Patne,08/14/2026,Heart Rate Variability (RMSSD),48.1674
+Validating Cardiac CSV row 79: Uday Patne,08/15/2026,Heart Rate Variability (RMSSD),47.2308
+Validating Cardiac CSV row 80: Uday Patne,08/16/2026,Heart Rate Variability (RMSSD),46.0456
+Validating Cardiac CSV row 81: Uday Patne,08/17/2026,Heart Rate Variability (RMSSD),46.4393
+Validating Cardiac CSV row 82: Uday Patne,08/18/2026,Heart Rate Variability (RMSSD),29.5429
+Validating Cardiac CSV row 83: Uday Patne,08/19/2026,Heart Rate Variability (RMSSD),42.6763
+Validating Cardiac CSV row 84: Uday Patne,08/20/2026,Heart Rate Variability (RMSSD),42.615
+Validating Cardiac CSV row 85: Uday Patne,08/21/2026,Heart Rate Variability (RMSSD),34.6907
+Validating Cardiac CSV row 86: Uday Patne,08/22/2026,Heart Rate Variability (RMSSD),39.4597
+Validating Cardiac CSV row 87: Uday Patne,08/23/2026,Heart Rate Variability (RMSSD),37.9326
+Validating Cardiac CSV row 88: Uday Patne,08/24/2026,Heart Rate Variability (RMSSD),42.2703
+Validating Cardiac CSV row 89: Uday Patne,08/25/2026,Heart Rate Variability (RMSSD),41.5222
+Validating Cardiac CSV row 90: Uday Patne,08/26/2026,Heart Rate Variability (RMSSD),43.3883
+Validating Cardiac CSV row 91: Uday Patne,08/27/2026,Heart Rate Variability (RMSSD),44.056
+Validating Cardiac CSV row 92: Uday Patne,07/13/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 93: Uday Patne,07/14/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 94: Uday Patne,07/15/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 95: Uday Patne,07/16/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 96: Uday Patne,07/17/2026,Respiratory Rate,15.6
+Validating Cardiac CSV row 97: Uday Patne,07/18/2026,Respiratory Rate,13.8
+Validating Cardiac CSV row 98: Uday Patne,07/19/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 99: Uday Patne,07/20/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 100: Uday Patne,07/21/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 101: Uday Patne,07/22/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 102: Uday Patne,07/23/2026,Respiratory Rate,14.2
+Validating Cardiac CSV row 103: Uday Patne,07/24/2026,Respiratory Rate,15
+Validating Cardiac CSV row 104: Uday Patne,07/25/2026,Respiratory Rate,15
+Validating Cardiac CSV row 105: Uday Patne,07/27/2026,Respiratory Rate,16.2
+Validating Cardiac CSV row 106: Uday Patne,07/28/2026,Respiratory Rate,15.8
+Validating Cardiac CSV row 107: Uday Patne,07/29/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 108: Uday Patne,07/30/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 109: Uday Patne,07/31/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 110: Uday Patne,08/01/2026,Respiratory Rate,15.8
+Validating Cardiac CSV row 111: Uday Patne,08/02/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 112: Uday Patne,08/03/2026,Respiratory Rate,14.4
+Validating Cardiac CSV row 113: Uday Patne,08/04/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 114: Uday Patne,08/05/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 115: Uday Patne,08/06/2026,Respiratory Rate,14.8
+Validating Cardiac CSV row 116: Uday Patne,08/07/2026,Respiratory Rate,15.6
+Validating Cardiac CSV row 117: Uday Patne,08/09/2026,Respiratory Rate,14.2
+Validating Cardiac CSV row 118: Uday Patne,08/10/2026,Respiratory Rate,16.4
+Validating Cardiac CSV row 119: Uday Patne,08/11/2026,Respiratory Rate,16
+Validating Cardiac CSV row 120: Uday Patne,08/12/2026,Respiratory Rate,15.4
+Validating Cardiac CSV row 121: Uday Patne,08/13/2026,Respiratory Rate,15.4
+Validating Cardiac CSV row 122: Uday Patne,08/14/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 123: Uday Patne,08/15/2026,Respiratory Rate,15
+Validating Cardiac CSV row 124: Uday Patne,08/16/2026,Respiratory Rate,15
+Validating Cardiac CSV row 125: Uday Patne,08/17/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 126: Uday Patne,08/18/2026,Respiratory Rate,15.2
+Validating Cardiac CSV row 127: Uday Patne,08/19/2026,Respiratory Rate,13.6
+Validating Cardiac CSV row 128: Uday Patne,08/20/2026,Respiratory Rate,15
+Validating Cardiac CSV row 129: Uday Patne,08/21/2026,Respiratory Rate,16.4
+Validating Cardiac CSV row 130: Uday Patne,08/22/2026,Respiratory Rate,13
+Validating Cardiac CSV row 131: Uday Patne,08/23/2026,Respiratory Rate,15.4
+Validating Cardiac CSV row 132: Uday Patne,08/24/2026,Respiratory Rate,13.8
+Validating Cardiac CSV row 133: Uday Patne,08/25/2026,Respiratory Rate,14.6
+Validating Cardiac CSV row 134: Uday Patne,08/26/2026,Respiratory Rate,14
+Validating Cardiac CSV row 135: Uday Patne,08/27/2026,Respiratory Rate,15.8
+Cardiac metrics found: [
+  'Resting Heart Rate',
+  'Heart Rate Variability (RMSSD)',
+  'Respiratory Rate'
+]
+Unique Date + Metric records: 133
