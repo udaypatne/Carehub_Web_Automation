@@ -11,10 +11,6 @@ const downloadPath = path.join(
     'Water Intake'
 );
 
-// ============================================================
-// REGEX
-// ============================================================
-
 const patientRegex =
     /^[A-Za-z]+(?: [A-Za-z]+)+$/;
 
@@ -46,16 +42,6 @@ const waterRegex =
 
 test.describe.serial('Water Intake - 90 Days CSV', () => {
 
-
-    // ========================================================
-    // BEFORE EACH TEST
-    // ========================================================
-    //
-    // Every test gets its own login/session/page.
-    // This keeps tests independent.
-    //
-    // ========================================================
-
     test.beforeEach(async ({
         loginPage,
         dashboardPage,
@@ -73,18 +59,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         await dashboardPage.selectTab('Health Passport');
     });
 
-
-    // ========================================================
-    // COMMON METHOD
-    // ========================================================
-    //
-    // Search User
-    // Select User
-    // Select Water Intake
-    // Select 90 Days
-    // Download CSV
-    //
-    // ========================================================
 
     async function openWaterIntakeAndDownload(
         healthUserListPage: any,
@@ -123,11 +97,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         return csvContent;
     }
 
-
-    // ========================================================
-    // CSV ROW PARSER
-    // ========================================================
-
     function getRows(
         csvContent: string
     ): string[] {
@@ -139,18 +108,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
     }
 
 
-    // ========================================================
-    // CSV COLUMN PARSER
-    // ========================================================
-    //
-    // Your actual CSV is comma-separated:
-    //
-    // Patient,Date,Water (ml)
-    //
-    // Therefore use "," instead of "\t".
-    //
-    // ========================================================
-
     function getColumns(
         row: string
     ): string[] {
@@ -160,10 +117,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
             .map(column => column.trim());
     }
 
-
-    // ========================================================
-    // FIND CSV HEADER
-    // ========================================================
 
     function getHeaderIndex(
         rows: string[]
@@ -176,11 +129,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
             row => row === expectedHeader
         );
     }
-
-
-    // ========================================================
-    // VALIDATE HEADER
-    // ========================================================
 
     function validateHeader(
         rows: string[],
@@ -207,11 +155,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         return headerIndex;
     }
 
-
-    // ========================================================
-    // TEST 01
-    // ========================================================
-
     test(
         '01 - Download Water Intake CSV and verify header',
         async ({
@@ -236,10 +179,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
     );
 
 
-    // ========================================================
-    // TEST 02
-    // ========================================================
-
     test(
         '02 - Verify Water Intake CSV title',
         async ({
@@ -262,11 +201,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
             ).toBe('Water Intake');
         }
     );
-
-
-    // ========================================================
-    // TEST 03
-    // ========================================================
 
     test(
         '03 - Verify Water Intake CSV contains records',
@@ -306,10 +240,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         }
     );
 
-
-    // ========================================================
-    // TEST 04
-    // ========================================================
 
     test(
         '04 - Verify Water Intake CSV column count',
@@ -360,10 +290,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         }
     );
 
-
-    // ========================================================
-    // TEST 05
-    // ========================================================
 
     test(
         '05 - Verify Patient values in Water Intake CSV',
@@ -424,10 +350,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
     );
 
 
-    // ========================================================
-    // TEST 06
-    // ========================================================
-
     test(
         '06 - Verify Date values in Water Intake CSV',
         async ({
@@ -485,11 +407,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
             }
         }
     );
-
-
-    // ========================================================
-    // TEST 07
-    // ========================================================
 
     test(
         '07 - Verify Water ml values in Water Intake CSV',
@@ -559,11 +476,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         }
     );
 
-
-    // ========================================================
-    // TEST 08
-    // ========================================================
-
     test(
         '08 - Verify CSV contains Water Intake',
         async ({
@@ -586,10 +498,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         }
     );
 
-
-    // ========================================================
-    // TEST 09
-    // ========================================================
 
     test(
         '09 - Verify CSV contains Patient',
@@ -614,10 +522,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
     );
 
 
-    // ========================================================
-    // TEST 10
-    // ========================================================
-
     test(
         '10 - Verify CSV contains Date',
         async ({
@@ -640,10 +544,6 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         }
     );
 
-
-    // ========================================================
-    // TEST 11
-    // ========================================================
 
     test(
         '11 - Verify CSV contains Water ml',

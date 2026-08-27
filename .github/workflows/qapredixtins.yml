@@ -1,4 +1,4 @@
-name: Predixtions
+name: Predixtions QA
 
 on:
   workflow_dispatch:
