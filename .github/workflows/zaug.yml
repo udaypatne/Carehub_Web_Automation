@@ -417,7 +417,7 @@ jobs:
 
           if failed > 0:
 
-              overall_status = "FAILED"
+              overall_status = "overall"
 
           elif flaky > 0:
 
