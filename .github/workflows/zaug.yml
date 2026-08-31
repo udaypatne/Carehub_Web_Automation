@@ -1041,7 +1041,7 @@ jobs:
             <meta charset="UTF-8">
 
             <title>
-              Predixtions Admin Automation
+              Predixtions Carehub Automation
             </title>
 
 
@@ -1158,7 +1158,7 @@ jobs:
               <div class="card">
 
                 <h1>
-                  🎭 Predixtions Admin Automation
+                  🎭 Predixtions Carehub Automation
                 </h1>
 
 
@@ -1409,7 +1409,7 @@ jobs:
 
               <h1 style="margin:0;">
 
-                🎭 Predixtions Admin Automation
+                🎭 Predixtions Carehub Automation
 
               </h1>
 
@@ -2207,7 +2207,7 @@ jobs:
               ">
 
 
-              Predixtions Admin Automation
+              Predixtions Carehub Automation
 
               <br>
 
@@ -2259,7 +2259,7 @@ jobs:
 
 
           subject:
-            "${{ steps.test-summary.outputs.status }} - 🎭 Predixtions Admin ${{ github.event.inputs.environment || 'QA' }} Automation - Run #${{ github.run_number }}"
+            "${{ steps.test-summary.outputs.status }} - 🎭 Predixtions Carehub ${{ github.event.inputs.environment || 'QA' }} Automation - Run #${{ github.run_number }}"
 
 
           html_body: file://automation-email.html
