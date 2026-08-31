@@ -417,7 +417,7 @@ jobs:
 
           if failed > 0:
 
-              overall_status = "overall"
+              overall_status = ""
 
           elif flaky > 0:
 
@@ -1423,10 +1423,8 @@ jobs:
 
             </div>
 
-            <!--
-            <!-- ==========================================
-                STATUS
-                ========================================== -->
+            <!-- STATUS BLOCK DISABLED
+            
 
             <div
               style="
@@ -1453,7 +1451,7 @@ jobs:
 
 
             </div>
-            -->
+            END STATUS BLOCK -->
 
             <div style="padding:30px;">
 
