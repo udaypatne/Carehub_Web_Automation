@@ -1,0 +1,19 @@
+Login button clicked
+[
+  'Dashboard',
+  'AI Voice Dashboard',
+  'Work Queue',
+  'Patient List',
+  'Health Passport',
+  'Care Programs',
+  'Onboarding',
+  'Population Health',
+  'Custom Dashboards',
+  'Medication Adherence',
+  'AI Guardrails',
+  'Rewards Engine',
+  'Reward Milestones',
+  'Care Team',
+  'Integrations',
+  'Organization'
+]
