@@ -1,0 +1,2274 @@
+name: AUG
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select environment'
+        required: true
+        default: 'QA'
+        type: choice
+        options:
+          - QA
+          - PROD
+
+  # Uncomment if you want scheduled execution
+  #
+  # schedule:
+  #   # 9:00 AM IST Monday-Friday
+  #   - cron: '30 03 * * 1-5'
+  #
+  #   # 5:00 PM IST Monday-Friday
+  #   - cron: '30 11 * * 1-5'
+  #
+  # push:
+  #   branches:
+  #     - main
+  #
+  # pull_request:
+  #   branches:
+  #     - main
+
+
+jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    environment: ${{ github.event.inputs.environment || 'QA' }}
+
+    permissions:
+      contents: write
+
+    steps:
+
+      # =========================================================
+      # CHECKOUT
+      # =========================================================
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      # =========================================================
+      # NODE
+      # =========================================================
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+
+      # =========================================================
+      # PLAYWRIGHT CACHE
+      # =========================================================
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+
+      # =========================================================
+      # INSTALL DEPENDENCIES
+      # =========================================================
+
+      - name: Install dependencies
+        run: npm ci
+
+
+      # =========================================================
+      # INSTALL PLAYWRIGHT
+      # =========================================================
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+
+      # =========================================================
+      # RUN PLAYWRIGHT TESTS
+      #
+      # Reporters:
+      #
+      # dot               -> console output
+      # json              -> playwright-results.json
+      # allure-playwright -> allure-results
+      #
+      # This means tests run ONLY ONCE.
+      # =========================================================
+
+      - name: Run Playwright tests
+        id: playwright-tests
+        continue-on-error: true
+
+        run: |
+          echo "======================================"
+          echo "Starting Playwright tests"
+          echo "Environment: ${{ github.event.inputs.environment || 'QA' }}"
+          echo "======================================"
+
+          npx playwright test \
+            --project=chromium \
+            --reporter=dot,json,allure-playwright
+
+        env:
+          ENV: ${{ github.event.inputs.environment || 'QA' }}
+
+          BASE_URL: ${{ secrets.BASE_URL }}
+          ORG_ADMIN: ${{ secrets.ORG_ADMIN }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+
+          PHYSICIAN_ROLE: ${{ secrets.PHYSICIAN_ROLE }}
+          CUSTOM_ROLE: ${{ secrets.CUSTOM_ROLE }}
+          TECHADMIN_ROLE: ${{ secrets.TECHADMIN_ROLE }}
+          MARKETING_ROLE: ${{ secrets.MARKETING_ROLE }}
+          CLINICAL_ROLE: ${{ secrets.CLINICAL_ROLE }}
+          DIETICIAN_ROLE: ${{ secrets.DIETICIAN_ROLE }}
+          CARECOORDINATOR_ROLE: ${{ secrets.CARECOORDINATOR_ROLE }}
+          NURSE_ROLE: ${{ secrets.NURSE_ROLE }}
+
+          PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-results.json
+
+
+      # =========================================================
+      # READ PLAYWRIGHT JSON
+      #
+      # Creates:
+      #
+      # test-summary.json
+      # all-tests.html
+      # failed-tests.html
+      #
+      # Counts:
+      # Total
+      # Passed
+      # Failed
+      # Flaky
+      # Skipped
+      # Timed Out
+      # =========================================================
+
+      - name: Generate Test Summary
+        id: test-summary
+        if: always()
+
+        shell: bash
+
+        run: |
+
+          python3 << 'PY'
+
+          import json
+          import os
+          import html
+
+
+          JSON_FILE = "playwright-results.json"
+
+
+          # =====================================================
+          # DEFAULT VALUES
+          # =====================================================
+
+          total = 0
+          passed = 0
+          failed = 0
+          flaky = 0
+          skipped = 0
+          timed_out = 0
+
+          all_tests = []
+          failed_tests = []
+          flaky_tests = []
+
+
+          # =====================================================
+          # ESCAPE HTML
+          # =====================================================
+
+          def esc(value):
+              return html.escape(str(value or ""))
+
+
+          # =====================================================
+          # PROCESS TEST
+          # =====================================================
+
+          def process_test(spec, test, suite_path, file_name):
+
+              global total
+              global passed
+              global failed
+              global flaky
+              global skipped
+              global timed_out
+
+
+              total += 1
+
+
+              test_title = spec.get("title", "Unknown Test")
+
+              project_name = test.get(
+                  "projectName",
+                  "chromium"
+              )
+
+
+              results = test.get("results", [])
+
+
+              # Number of attempts
+              attempts = len(results)
+
+
+              if attempts == 0:
+
+                  final_status = "unknown"
+
+              else:
+
+                  final_result = results[-1]
+
+                  final_status = final_result.get(
+                      "status",
+                      "unknown"
+                  )
+
+
+              # =================================================
+              # DETERMINE STATUS
+              # =================================================
+
+              if final_status == "passed":
+
+                  if attempts > 1:
+
+                      status = "flaky"
+
+                      flaky += 1
+
+                      flaky_tests.append({
+                          "file": file_name,
+                          "suite": suite_path,
+                          "test": test_title,
+                          "attempts": attempts,
+                          "project": project_name
+                      })
+
+                  else:
+
+                      status = "passed"
+
+                      passed += 1
+
+
+              elif final_status == "skipped":
+
+                  status = "skipped"
+
+                  skipped += 1
+
+
+              elif final_status == "timedOut":
+
+                  status = "failed"
+
+                  failed += 1
+
+                  timed_out += 1
+
+                  failed_tests.append({
+                      "file": file_name,
+                      "suite": suite_path,
+                      "test": test_title,
+                      "attempts": attempts,
+                      "project": project_name,
+                      "status": "Timed Out"
+                  })
+
+
+              elif final_status == "failed":
+
+                  status = "failed"
+
+                  failed += 1
+
+                  failed_tests.append({
+                      "file": file_name,
+                      "suite": suite_path,
+                      "test": test_title,
+                      "attempts": attempts,
+                      "project": project_name,
+                      "status": "Failed"
+                  })
+
+
+              else:
+
+                  status = final_status
+
+
+              all_tests.append({
+                  "file": file_name,
+                  "suite": suite_path,
+                  "test": test_title,
+                  "status": status,
+                  "attempts": attempts,
+                  "project": project_name
+              })
+
+
+          # =====================================================
+          # PROCESS SUITE
+          # =====================================================
+
+          def process_suite(suite, parent_path=""):
+
+              suite_title = suite.get("title", "")
+
+              if parent_path and suite_title:
+
+                  current_path = (
+                      f"{parent_path} > {suite_title}"
+                  )
+
+              else:
+
+                  current_path = suite_title or parent_path
+
+
+              file_name = suite.get("file", "")
+
+
+              for spec in suite.get("specs", []):
+
+                  for test in spec.get("tests", []):
+
+                      process_test(
+                          spec,
+                          test,
+                          current_path,
+                          file_name
+                      )
+
+
+              for child_suite in suite.get("suites", []):
+
+                  process_suite(
+                      child_suite,
+                      current_path
+                  )
+
+
+          # =====================================================
+          # READ JSON
+          # =====================================================
+
+          if os.path.exists(JSON_FILE):
+
+              try:
+
+                  with open(
+                      JSON_FILE,
+                      "r",
+                      encoding="utf-8"
+                  ) as f:
+
+                      data = json.load(f)
+
+
+                  for suite in data.get("suites", []):
+
+                      process_suite(suite)
+
+
+              except Exception as error:
+
+                  print(
+                      "ERROR reading Playwright JSON:"
+                  )
+
+                  print(error)
+
+
+          else:
+
+              print(
+                  "WARNING: playwright-results.json "
+                  "was not found."
+              )
+
+
+          # =====================================================
+          # OVERALL STATUS
+          # =====================================================
+
+          if failed > 0:
+
+              overall_status = "FAILED"
+
+          elif flaky > 0:
+
+              overall_status = "PASSED WITH FLAKY TESTS"
+
+          else:
+
+              overall_status = "PASSED"
+
+
+          # =====================================================
+          # PRINT SUMMARY
+          # =====================================================
+
+          print("")
+          print("======================================")
+          print("PLAYWRIGHT TEST SUMMARY")
+          print("======================================")
+          print(f"Total     : {total}")
+          print(f"Passed    : {passed}")
+          print(f"Failed    : {failed}")
+          print(f"Flaky     : {flaky}")
+          print(f"Skipped   : {skipped}")
+          print(f"Timed Out : {timed_out}")
+          print(f"Status    : {overall_status}")
+          print("======================================")
+          print("")
+
+
+          # =====================================================
+          # WRITE SUMMARY JSON
+          # =====================================================
+
+          summary = {
+
+              "total": total,
+
+              "passed": passed,
+
+              "failed": failed,
+
+              "flaky": flaky,
+
+              "skipped": skipped,
+
+              "timedOut": timed_out,
+
+              "status": overall_status
+
+          }
+
+
+          with open(
+              "test-summary.json",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
+              json.dump(
+                  summary,
+                  f,
+                  indent=2
+              )
+
+
+          # =====================================================
+          # STATUS DISPLAY HELPERS
+          # =====================================================
+
+          status_display = {
+
+              "passed":
+                  '<span style="color:#12b76a;font-weight:bold;">'
+                  '✅ Passed'
+                  '</span>',
+
+              "failed":
+                  '<span style="color:#d92d20;font-weight:bold;">'
+                  '❌ Failed'
+                  '</span>',
+
+              "flaky":
+                  '<span style="color:#b54708;font-weight:bold;">'
+                  '⚠️ Flaky'
+                  '</span>',
+
+              "skipped":
+                  '<span style="color:#667085;font-weight:bold;">'
+                  '⏭️ Skipped'
+                  '</span>',
+
+              "unknown":
+                  '<span style="color:#667085;font-weight:bold;">'
+                  '❔ Unknown'
+                  '</span>'
+
+          }
+
+
+          # =====================================================
+          # ALL TESTS HTML
+          # =====================================================
+
+          all_tests_html = ""
+
+
+          for index, item in enumerate(all_tests, start=1):
+
+              status_html = status_display.get(
+                  item["status"],
+                  esc(item["status"])
+              )
+
+
+              attempts_text = str(
+                  item["attempts"]
+              )
+
+
+              if item["attempts"] > 1:
+
+                  attempts_text += " attempts"
+
+
+              else:
+
+                  attempts_text += " attempt"
+
+
+              all_tests_html += f"""
+
+              <tr>
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  color:#667085;
+                  text-align:center;
+                ">
+                  {index}
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  <strong>
+                    {esc(item["file"])}
+                  </strong>
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  {esc(item["suite"])}
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  <strong>
+                    {esc(item["test"])}
+                  </strong>
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                ">
+
+                  {status_html}
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                ">
+
+                  {attempts_text}
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          if not all_tests_html:
+
+              all_tests_html = """
+
+              <tr>
+
+                <td
+                  colspan="6"
+                  style="
+                    padding:20px;
+                    text-align:center;
+                    border:1px solid #ddd;
+                  ">
+
+                  No test information was found.
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          with open(
+              "all-tests.html",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
+              f.write(all_tests_html)
+
+
+          # =====================================================
+          # FAILED TESTS HTML
+          # =====================================================
+
+          failed_tests_html = ""
+
+
+          for item in failed_tests:
+
+              failed_tests_html += f"""
+
+              <tr>
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  <strong>
+                    {esc(item["file"])}
+                  </strong>
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  <strong>
+                    {esc(item["test"])}
+                  </strong>
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                  color:#d92d20;
+                  font-weight:bold;
+                ">
+
+                  ❌ {esc(item["status"])}
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                ">
+
+                  {item["attempts"]}
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          if not failed_tests_html:
+
+              failed_tests_html = """
+
+              <tr>
+
+                <td
+                  colspan="4"
+                  style="
+                    padding:20px;
+                    text-align:center;
+                    border:1px solid #ddd;
+                    color:#12b76a;
+                    font-weight:bold;
+                  ">
+
+                  ✅ No failed tests
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          with open(
+              "failed-tests.html",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
+              f.write(failed_tests_html)
+
+
+          # =====================================================
+          # FLAKY TESTS HTML
+          # =====================================================
+
+          flaky_tests_html = ""
+
+
+          for item in flaky_tests:
+
+              flaky_tests_html += f"""
+
+              <tr>
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  {esc(item["file"])}
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                ">
+
+                  <strong>
+                    {esc(item["test"])}
+                  </strong>
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                  color:#b54708;
+                  font-weight:bold;
+                ">
+
+                  ⚠️ Flaky
+
+                </td>
+
+
+                <td style="
+                  padding:10px;
+                  border:1px solid #ddd;
+                  text-align:center;
+                ">
+
+                  {item["attempts"]}
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          if not flaky_tests_html:
+
+              flaky_tests_html = """
+
+              <tr>
+
+                <td
+                  colspan="4"
+                  style="
+                    padding:20px;
+                    text-align:center;
+                    border:1px solid #ddd;
+                    color:#667085;
+                  ">
+
+                  No flaky tests
+
+                </td>
+
+              </tr>
+
+              """
+
+
+          with open(
+              "flaky-tests.html",
+              "w",
+              encoding="utf-8"
+          ) as f:
+
+              f.write(flaky_tests_html)
+
+
+          # =====================================================
+          # GITHUB OUTPUTS
+          # =====================================================
+
+          with open(
+              os.environ["GITHUB_OUTPUT"],
+              "a",
+              encoding="utf-8"
+          ) as f:
+
+              f.write(
+                  f"total={total}\n"
+              )
+
+              f.write(
+                  f"passed={passed}\n"
+              )
+
+              f.write(
+                  f"failed={failed}\n"
+              )
+
+              f.write(
+                  f"flaky={flaky}\n"
+              )
+
+              f.write(
+                  f"skipped={skipped}\n"
+              )
+
+              f.write(
+                  f"timedOut={timed_out}\n"
+              )
+
+              f.write(
+                  f"status={overall_status}\n"
+              )
+
+
+          PY
+
+
+      # =========================================================
+      # UPLOAD TEST SUMMARY
+      # =========================================================
+
+      - name: Upload Test Summary
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: playwright-test-summary-${{ github.run_id }}
+
+          path: |
+            playwright-results.json
+            test-summary.json
+            all-tests.html
+            failed-tests.html
+            flaky-tests.html
+
+          retention-days: 30
+
+
+      # =========================================================
+      # GENERATE ALLURE REPORT
+      # =========================================================
+
+      - name: Generate Allure Report
+        if: always()
+
+        run: |
+
+          npm install -g allure-commandline
+
+          rm -rf allure-report
+
+          if [ -d "allure-results" ] && [ "$(ls -A allure-results 2>/dev/null)" ]; then
+
+            allure generate allure-results \
+              --clean \
+              -o allure-report
+
+          else
+
+            echo "WARNING: allure-results directory is empty or missing."
+
+            mkdir -p allure-report
+
+            cat > allure-report/index.html << 'EOF'
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+            <meta charset="UTF-8">
+            <title>Allure Report</title>
+          </head>
+
+          <body>
+
+            <h1>Allure Report</h1>
+
+            <p>
+              No Allure results were generated.
+            </p>
+
+          </body>
+
+          </html>
+
+          EOF
+
+          fi
+
+          echo "======================================"
+          echo "Allure report generated"
+          echo "======================================"
+
+          ls -la allure-report
+
+
+      # =========================================================
+      # UPLOAD PLAYWRIGHT REPORT
+      # =========================================================
+
+      - name: Upload Playwright HTML Report
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: playwright-html-report-${{ github.run_id }}
+
+          path: reports/html-report/
+
+          retention-days: 30
+
+
+      # =========================================================
+      # UPLOAD ALLURE RESULTS
+      # =========================================================
+
+      - name: Upload Allure Results
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: allure-results-${{ github.run_id }}
+
+          path: allure-results/
+
+          retention-days: 30
+
+
+      # =========================================================
+      # PREPARE GITHUB PAGES
+      # =========================================================
+
+      - name: Prepare GitHub Pages
+        if: always()
+
+        run: |
+
+          mkdir -p pages-deploy/runs/${{ github.run_id }}/allure
+
+
+          # Copy Allure report
+
+          cp -r allure-report/* \
+            pages-deploy/runs/${{ github.run_id }}/allure/
+
+
+          # =====================================================
+          # CREATE LANDING PAGE
+          # =====================================================
+
+          cat > pages-deploy/runs/${{ github.run_id }}/index.html << EOF
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+            <meta charset="UTF-8">
+
+            <title>
+              Predixtions Admin Automation
+            </title>
+
+
+            <style>
+
+              body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                margin: 0;
+                padding: 50px;
+              }
+
+
+              .container {
+                max-width: 1000px;
+                margin: auto;
+              }
+
+
+              .card {
+                background: white;
+                padding: 35px;
+                border-radius: 12px;
+                box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+              }
+
+
+              h1 {
+                color: #1a1a2e;
+                text-align: center;
+              }
+
+
+              .info {
+                color: #666;
+                margin: 10px 0;
+              }
+
+
+              .stats {
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                margin-top: 30px;
+              }
+
+
+              .stat {
+                flex: 1;
+                min-width: 130px;
+                padding: 20px;
+                border-radius: 10px;
+                text-align: center;
+              }
+
+
+              .number {
+                font-size: 32px;
+                font-weight: bold;
+                margin-top: 8px;
+              }
+
+
+              .total {
+                background: #eaf2ff;
+              }
+
+
+              .passed {
+                background: #e9f8ef;
+              }
+
+
+              .failed {
+                background: #fdecec;
+              }
+
+
+              .flaky {
+                background: #fff5d6;
+              }
+
+
+              .skipped {
+                background: #eeeeee;
+              }
+
+
+              .button {
+                display: inline-block;
+                margin-top: 30px;
+                padding: 14px 28px;
+                background: #28a745;
+                color: white;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+              }
+
+
+              .center {
+                text-align: center;
+              }
+
+            </style>
+
+          </head>
+
+
+          <body>
+
+            <div class="container">
+
+              <div class="card">
+
+                <h1>
+                  🎭 Predixtions Admin Automation
+                </h1>
+
+
+                <h2 style="text-align:center;">
+                  📊 Automation Result
+                </h2>
+
+
+                <p class="info">
+                  Environment:
+                  <strong>
+                    ${{ github.event.inputs.environment || 'QA' }}
+                  </strong>
+                </p>
+
+
+                <p class="info">
+                  Branch:
+                  <strong>
+                    ${{ github.ref_name }}
+                  </strong>
+                </p>
+
+
+                <p class="info">
+                  Run ID:
+                  <strong>
+                    ${{ github.run_id }}
+                  </strong>
+                </p>
+
+
+                <p class="info">
+                  Run Number:
+                  <strong>
+                    #${{ github.run_number }}
+                  </strong>
+                </p>
+
+
+                <!-- TEST STATS -->
+
+                <div class="stats">
+
+
+                  <div class="stat total">
+
+                    <div>
+                      Total
+                    </div>
+
+                    <div class="number">
+                      ${{ steps.test-summary.outputs.total }}
+                    </div>
+
+                  </div>
+
+
+                  <div class="stat passed">
+
+                    <div>
+                      Passed
+                    </div>
+
+                    <div class="number">
+                      ${{ steps.test-summary.outputs.passed }}
+                    </div>
+
+                  </div>
+
+
+                  <div class="stat failed">
+
+                    <div>
+                      Failed
+                    </div>
+
+                    <div class="number">
+                      ${{ steps.test-summary.outputs.failed }}
+                    </div>
+
+                  </div>
+
+
+                  <div class="stat flaky">
+
+                    <div>
+                      Flaky
+                    </div>
+
+                    <div class="number">
+                      ${{ steps.test-summary.outputs.flaky }}
+                    </div>
+
+                  </div>
+
+
+                  <div class="stat skipped">
+
+                    <div>
+                      Skipped
+                    </div>
+
+                    <div class="number">
+                      ${{ steps.test-summary.outputs.skipped }}
+                    </div>
+
+                  </div>
+
+
+                </div>
+
+
+                <div class="center">
+
+                  <a
+                    class="button"
+                    href="./allure/index.html"
+                    target="_blank">
+
+                    📈 Open Allure Report
+
+                  </a>
+
+                </div>
+
+
+              </div>
+
+            </div>
+
+          </body>
+
+          </html>
+
+          EOF
+
+
+      # =========================================================
+      # DEPLOY TO GITHUB PAGES
+      # =========================================================
+
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+
+        uses: peaceiris/actions-gh-pages@v4
+
+        with:
+
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          publish_dir: pages-deploy
+
+          keep_files: true
+
+
+      # =========================================================
+      # CREATE EMAIL HTML
+      # =========================================================
+
+      - name: Create Email HTML
+        if: always()
+
+        shell: bash
+
+        run: |
+
+          TOTAL="${{ steps.test-summary.outputs.total }}"
+
+          PASSED="${{ steps.test-summary.outputs.passed }}"
+
+          FAILED="${{ steps.test-summary.outputs.failed }}"
+
+          FLAKY="${{ steps.test-summary.outputs.flaky }}"
+
+          SKIPPED="${{ steps.test-summary.outputs.skipped }}"
+
+          TIMEOUT="${{ steps.test-summary.outputs.timedOut }}"
+
+          STATUS="${{ steps.test-summary.outputs.status }}"
+
+
+          # =====================================================
+          # STATUS STYLE
+          # =====================================================
+
+          if [ "$FAILED" -gt 0 ]; then
+
+            STATUS_COLOR="#d92d20"
+            STATUS_ICON="❌"
+
+          elif [ "$FLAKY" -gt 0 ]; then
+
+            STATUS_COLOR="#b54708"
+            STATUS_ICON="⚠️"
+
+          else
+
+            STATUS_COLOR="#12b76a"
+            STATUS_ICON="✅"
+
+          fi
+
+
+          # =====================================================
+          # CREATE EMAIL
+          # =====================================================
+
+          cat > automation-email.html << EOF
+
+          <!DOCTYPE html>
+
+          <html>
+
+
+          <body
+            style="
+              margin:0;
+              padding:0;
+              background:#f4f6f8;
+              font-family:Arial,sans-serif;
+            ">
+
+
+          <div
+            style="
+              max-width:1000px;
+              margin:30px auto;
+              background:white;
+              border-radius:12px;
+              overflow:hidden;
+              box-shadow:0 3px 12px rgba(0,0,0,0.12);
+            ">
+
+
+            <!-- ==========================================
+                 HEADER
+                 ========================================== -->
+
+            <div
+              style="
+                background:#1a1a2e;
+                color:white;
+                padding:30px;
+                text-align:center;
+              ">
+
+
+              <h1 style="margin:0;">
+
+                🎭 Predixtions Admin Automation
+
+              </h1>
+
+
+              <p style="margin:10px 0 0;">
+
+                Test Execution Completed
+
+              </p>
+
+
+            </div>
+
+
+            <!-- ==========================================
+                 STATUS
+                 ========================================== -->
+
+            <div
+              style="
+                padding:25px;
+                text-align:center;
+                border-bottom:1px solid #eee;
+              ">
+
+
+              <div
+                style="
+                  display:inline-block;
+                  padding:12px 25px;
+                  border-radius:25px;
+                  background:${STATUS_COLOR};
+                  color:white;
+                  font-size:20px;
+                  font-weight:bold;
+                ">
+
+                ${STATUS_ICON} ${STATUS}
+
+              </div>
+
+
+            </div>
+
+
+            <div style="padding:30px;">
+
+
+              <!-- ========================================
+                   SUMMARY
+                   ======================================== -->
+
+              <h2 style="
+                color:#333;
+                text-align:center;
+              ">
+
+                📊 Test Execution Summary
+
+              </h2>
+
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="10"
+                style="
+                  border-collapse:separate;
+                ">
+
+
+                <tr>
+
+
+                  <td
+                    style="
+                      background:#eaf2ff;
+                      padding:20px;
+                      text-align:center;
+                      border-radius:10px;
+                    ">
+
+                    <div style="color:#667085;">
+                      Total
+                    </div>
+
+                    <div
+                      style="
+                        font-size:32px;
+                        font-weight:bold;
+                      ">
+
+                      ${TOTAL}
+
+                    </div>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      background:#e9f8ef;
+                      padding:20px;
+                      text-align:center;
+                      border-radius:10px;
+                    ">
+
+                    <div style="color:#667085;">
+                      Passed
+                    </div>
+
+                    <div
+                      style="
+                        font-size:32px;
+                        font-weight:bold;
+                        color:#12b76a;
+                      ">
+
+                      ${PASSED}
+
+                    </div>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      background:#fdecec;
+                      padding:20px;
+                      text-align:center;
+                      border-radius:10px;
+                    ">
+
+                    <div style="color:#667085;">
+                      Failed
+                    </div>
+
+                    <div
+                      style="
+                        font-size:32px;
+                        font-weight:bold;
+                        color:#d92d20;
+                      ">
+
+                      ${FAILED}
+
+                    </div>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      background:#fff5d6;
+                      padding:20px;
+                      text-align:center;
+                      border-radius:10px;
+                    ">
+
+                    <div style="color:#667085;">
+                      Flaky
+                    </div>
+
+                    <div
+                      style="
+                        font-size:32px;
+                        font-weight:bold;
+                        color:#b54708;
+                      ">
+
+                      ${FLAKY}
+
+                    </div>
+
+                  </td>
+
+
+                  <td
+                    style="
+                      background:#f2f4f7;
+                      padding:20px;
+                      text-align:center;
+                      border-radius:10px;
+                    ">
+
+                    <div style="color:#667085;">
+                      Skipped
+                    </div>
+
+                    <div
+                      style="
+                        font-size:32px;
+                        font-weight:bold;
+                        color:#667085;
+                      ">
+
+                      ${SKIPPED}
+
+                    </div>
+
+                  </td>
+
+
+                </tr>
+
+
+              </table>
+
+
+              <!-- ========================================
+                   EXECUTION DETAILS
+                   ======================================== -->
+
+              <h2 style="
+                color:#333;
+                margin-top:35px;
+              ">
+
+                📋 Execution Details
+
+              </h2>
+
+
+              <table
+                width="100%"
+                cellpadding="10"
+                cellspacing="0"
+                style="
+                  border-collapse:collapse;
+                ">
+
+
+                <tr>
+
+                  <td
+                    style="
+                      color:#667085;
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    Environment
+
+                  </td>
+
+
+                  <td
+                    style="
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    <strong>
+                      ${{ github.event.inputs.environment || 'QA' }}
+                    </strong>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      color:#667085;
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    Branch
+
+                  </td>
+
+
+                  <td
+                    style="
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    <strong>
+                      ${{ github.ref_name }}
+                    </strong>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      color:#667085;
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    Run Number
+
+                  </td>
+
+
+                  <td
+                    style="
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    <strong>
+                      #${{ github.run_number }}
+                    </strong>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      color:#667085;
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    Run ID
+
+                  </td>
+
+
+                  <td
+                    style="
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    <strong>
+                      ${{ github.run_id }}
+                    </strong>
+
+                  </td>
+
+                </tr>
+
+
+                <tr>
+
+                  <td
+                    style="
+                      color:#667085;
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    Browser
+
+                  </td>
+
+
+                  <td
+                    style="
+                      border-bottom:1px solid #eee;
+                    ">
+
+                    <strong>
+                      Chromium
+                    </strong>
+
+                  </td>
+
+                </tr>
+
+
+              </table>
+
+
+              <!-- ========================================
+                   ALL TESTS
+                   ======================================== -->
+
+              <h2 style="
+                color:#333;
+                margin-top:40px;
+              ">
+
+                🧪 All Test Cases
+
+              </h2>
+
+
+              <p style="color:#667085;">
+
+                Complete list of test scripts and test methods
+                executed during this run.
+
+              </p>
+
+
+              <div
+                style="
+                  overflow-x:auto;
+                ">
+
+
+                <table
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    border-collapse:collapse;
+                    font-size:13px;
+                  ">
+
+
+                  <thead>
+
+                    <tr>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                        ">
+
+                        #
+
+                      </th>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                          text-align:left;
+                        ">
+
+                        Test Script / File
+
+                      </th>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                          text-align:left;
+                        ">
+
+                        Test Class / Suite
+
+                      </th>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                          text-align:left;
+                        ">
+
+                        Test Method / Title
+
+                      </th>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                          text-align:center;
+                        ">
+
+                        Status
+
+                      </th>
+
+
+                      <th
+                        style="
+                          padding:10px;
+                          background:#f5f6f7;
+                          border:1px solid #ddd;
+                          text-align:center;
+                        ">
+
+                        Attempts
+
+                      </th>
+
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+
+                    $(cat all-tests.html)
+
+
+                  </tbody>
+
+
+                </table>
+
+
+              </div>
+
+
+              <!-- ========================================
+                   FAILED TESTS
+                   ======================================== -->
+
+              <h2 style="
+                color:#333;
+                margin-top:40px;
+              ">
+
+                🔴 Failed Tests
+
+              </h2>
+
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                style="
+                  border-collapse:collapse;
+                  font-size:13px;
+                ">
+
+
+                <thead>
+
+                  <tr>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                        text-align:left;
+                      ">
+
+                      Test Script
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                        text-align:left;
+                      ">
+
+                      Test Method
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                      ">
+
+                      Status
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                      ">
+
+                      Attempts
+
+                    </th>
+
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  $(cat failed-tests.html)
+
+                </tbody>
+
+
+              </table>
+
+
+              <!-- ========================================
+                   FLAKY TESTS
+                   ======================================== -->
+
+              <h2 style="
+                color:#333;
+                margin-top:40px;
+              ">
+
+                ⚠️ Flaky Tests
+
+              </h2>
+
+
+              <p style="color:#667085;">
+
+                Tests that failed during an earlier attempt
+                but passed after retry are shown here.
+
+              </p>
+
+
+              <table
+                width="100%"
+                cellpadding="0"
+                cellspacing="0"
+                style="
+                  border-collapse:collapse;
+                  font-size:13px;
+                ">
+
+
+                <thead>
+
+                  <tr>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                        text-align:left;
+                      ">
+
+                      Test Script
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                        text-align:left;
+                      ">
+
+                      Test Method
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                      ">
+
+                      Status
+
+                    </th>
+
+
+                    <th
+                      style="
+                        padding:10px;
+                        background:#f5f6f7;
+                        border:1px solid #ddd;
+                      ">
+
+                      Attempts
+
+                    </th>
+
+
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  $(cat flaky-tests.html)
+
+                </tbody>
+
+
+              </table>
+
+
+              <!-- ========================================
+                   ALLURE
+                   ======================================== -->
+
+              <div
+                style="
+                  margin-top:40px;
+                  text-align:center;
+                ">
+
+
+                <h2>
+                  📈 Allure Test Report
+                </h2>
+
+
+                <p style="color:#667085;">
+
+                  Open the detailed Allure report for
+                  screenshots, traces and complete execution details.
+
+                </p>
+
+
+                <a
+                  href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/runs/${{ github.run_id }}/allure/"
+                  target="_blank"
+                  style="
+                    display:inline-block;
+                    padding:14px 28px;
+                    background:#28a745;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:8px;
+                    font-weight:bold;
+                  ">
+
+                  📈 Open Allure Report
+
+                </a>
+
+
+              </div>
+
+
+              <!-- ========================================
+                   GITHUB ACTIONS
+                   ======================================== -->
+
+              <div
+                style="
+                  margin-top:20px;
+                  text-align:center;
+                ">
+
+
+                <a
+                  href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                  target="_blank"
+                  style="
+                    display:inline-block;
+                    padding:10px 20px;
+                    background:#6c757d;
+                    color:white;
+                    text-decoration:none;
+                    border-radius:6px;
+                  ">
+
+                  ⚙️ View GitHub Actions Run
+
+                </a>
+
+
+              </div>
+
+
+            </div>
+
+
+            <!-- ==========================================
+                 FOOTER
+                 ========================================== -->
+
+            <div
+              style="
+                background:#f8f9fa;
+                padding:18px;
+                text-align:center;
+                color:#999;
+                font-size:12px;
+              ">
+
+
+              Predixtions Admin Automation
+
+              <br>
+
+              GitHub Run #${{ github.run_number }}
+
+
+            </div>
+
+
+          </div>
+
+
+          </body>
+
+          </html>
+
+          EOF
+
+
+      # =========================================================
+      # SEND EMAIL
+      # =========================================================
+
+      - name: Send Allure Report Email
+        if: always()
+
+        uses: dawidd6/action-send-mail@v6
+
+        with:
+
+          server_address: smtp.gmail.com
+
+          server_port: 465
+
+          secure: true
+
+
+          username: ${{ secrets.EMAIL_USERNAME }}
+
+          password: ${{ secrets.EMAIL_PASSWORD }}
+
+
+          from:
+            "Predixtions Automation <${{ secrets.EMAIL_USERNAME }}>"
+
+
+          to:
+            uday.patne@predixtions.com
+
+
+          subject:
+            "${{ steps.test-summary.outputs.status }} - 🎭 Predixtions Admin ${{ github.event.inputs.environment || 'QA' }} Automation - Run #${{ github.run_number }}"
+
+
+          html_body: file://automation-email.html
+
+
+          attachments: |
+            playwright-results.json
+            test-summary.json
+            all-tests.html
+```
