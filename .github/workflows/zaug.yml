@@ -2271,4 +2271,3 @@ jobs:
             playwright-results.json
             test-summary.json
             all-tests.html
-```
