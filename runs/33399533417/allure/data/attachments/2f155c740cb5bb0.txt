@@ -1,0 +1,3 @@
+Login button clicked
+CSV Header found at row: 2
+Total Weight records found: 11
