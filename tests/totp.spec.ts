@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { msToWaitForFreshCode, totp, totpSecretFor } from '../src/utils/totp';
+import { msToWaitForFreshCode, normalizeTotpKey, totp, totpSecretFor } from '../src/utils/totp';
 
 // RFC 6238 appendix B, SHA-1: the ASCII key "12345678901234567890" in base32.
 // A published test vector, not a real account's key.
@@ -81,4 +81,32 @@ test.describe('totpSecretFor()', () => {
             expect(String(e)).not.toContain('unknown@example.test');
         }
     });
+});
+
+test.describe('normalizeTotpKey()', () => {
+    test('turns the key as the set-up page groups it into the bare key', () => {
+        expect(normalizeTotpKey('  GEZD GNBV GY3T QOJQ\nGEZD GNBV GY3T QOJQ ')).toBe(RFC_SECRET);
+        expect(normalizeTotpKey('gezdgnbvgy3tqojqgezdgnbvgy3tqojq')).toBe(RFC_SECRET);
+    });
+
+    test('the normalized key gives the same codes', () => {
+        expect(totp(normalizeTotpKey('GEZD GNBV GY3T QOJQ GEZD GNBV GY3T QOJQ'), 59_000)).toBe('287082');
+    });
+
+    // Only a format check: all-letter text ("Scan this code with your app") IS
+    // valid base32. The real guards are reading only data-testid="totp-secret-key"
+    // and CareHub rejecting a wrong key's code (enrollTotp then rolls back).
+    for (const [label, raw, error] of [
+        ['empty text', '', 'too short'],
+        ['a short word', 'ABCD EFGH', 'too short'],
+        ['the label next to the key', "Can't scan it? Enter this key instead:", 'not valid base32'],
+        ['a key with a non-base32 character', 'ABCD EFGH IJKL MNO1', 'not valid base32'],
+    ] as const) {
+        test(`rejects ${label} without echoing it`, () => {
+            let caught: unknown;
+            try { normalizeTotpKey(raw); } catch (e) { caught = e; }
+            expect(String(caught)).toContain(error);
+            if (raw.trim()) expect(String(caught)).not.toContain(raw.trim());
+        });
+    }
 });

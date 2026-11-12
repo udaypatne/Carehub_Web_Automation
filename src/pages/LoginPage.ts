@@ -49,16 +49,23 @@ export class LoginPage extends BasePage {
     }
 
     async login(username: string, password: string): Promise<void> {
-        await this.emailId.fill(username);
-        await this.password.fill(password);
-        if (await this.loginBtn.isEnabled()) {
-            await this.loginBtn.click();
-            console.log("Login button clicked");
+        if (await this.submitCredentials(username, password)) {
             await this.completeTwoFactorIfAsked(username);
-        } else {
-            console.log("Login button is disabled");
         }
         await this.signedInSuccessMsg.isVisible();
+    }
+
+    /** Types the email and password and clicks Sign in. False if Sign in was disabled. */
+    async submitCredentials(username: string, password: string): Promise<boolean> {
+        await this.emailId.fill(username);
+        await this.password.fill(password);
+        if (!(await this.loginBtn.isEnabled())) {
+            console.log("Login button is disabled");
+            return false;
+        }
+        await this.loginBtn.click();
+        console.log("Login button clicked");
+        return true;
     }
 
     // CareHub staff 2FA (XSPAN-9002). After the password, CareHub signs in, shows

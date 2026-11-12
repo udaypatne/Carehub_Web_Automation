@@ -10,7 +10,8 @@
     "allure:generate": "npx allure generate allure-results --clean -o allure-report",
     "allure:open": "npx allure open allure-report",
     "allure:report": "npm run allure:generate && npm run allure:open",
-    "allure:clean": "rm -rf allure-results allure-report"
+    "allure:clean": "rm -rf allure-results allure-report",
+    "setup:2fa": "playwright test --config=scripts/setup-2fa.config.ts"
   },
   "keywords": [],
   "author": "",

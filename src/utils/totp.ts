@@ -68,3 +68,14 @@ export function totpSecretFor(username: string, env: NodeJS.ProcessEnv = process
     }
     return env[`${roleVar}_TOTP_SECRET`]!;
 }
+
+/**
+ * The key as CareHub's set-up page shows it ("JBSW Y3DP EHPK …") → the bare
+ * base32 key. Throws, without echoing any of the input, if it is not one.
+ */
+export function normalizeTotpKey(raw: string): string {
+    const key = raw.replace(/[\s=]/g, "").toUpperCase();
+    if (key.length < 16) throw new Error("Not a TOTP key: too short");
+    base32Decode(key); // throws "TOTP secret is not valid base32"
+    return key;
+}
