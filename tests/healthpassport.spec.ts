@@ -29,6 +29,7 @@ test('verify all tabs present ', async ({ healthUserListPage, userHealthPassport
             'Water Intake', 'Cardiac',
             'Blood Pressure', 'Temperature',
             'Biomarkers', 'Body Scan',
+            'Mindfulness',
             'Medications', 'Supplements',
             'Reports'
         ]
