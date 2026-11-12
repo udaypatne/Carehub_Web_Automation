@@ -35,7 +35,7 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
 test('Verify tab visibility for Physician staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
         "AI Voice Dashboard",
-        'Work Queue',,
+        'Work Queue',
         "XLC Partner",
         'Patient List',
         'Health Passport',
