@@ -69,9 +69,9 @@ test('verify Tabs availability on Protocol Page', async ({ careProgramPage2, pro
         "Nudge Audit",
         "Settings",
     ]
+    // navigateOnProgramPage already opens the program; a second "View Details"
+    // click landed on whichever program was listed first.
     await navigateOnProgramPage(careProgramPage2);
-    await careProgramPage2.clickOnViewDetails();
-    await basePage.waitForElementTimeout(2000);
     let actualTabs = await protocolPage.getTabs();
     console.log(actualTabs, 'list');
     expect(actualTabs).toEqual(expectedTabs);

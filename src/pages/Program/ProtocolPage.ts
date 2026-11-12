@@ -98,6 +98,8 @@ export class ProtocolPage extends BasePage {
     }
 
     async getTabs(): Promise<string[]> {
+        // allInnerTexts() does not wait: read only once the program's tabs are shown.
+        await this.tabsList.first().waitFor({ state: 'visible' });
         return await this.tabsList.allInnerTexts();
     }
 
