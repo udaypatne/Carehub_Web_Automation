@@ -10,7 +10,6 @@ export class CareProgramPage2 extends BasePage {
     private readonly createProgramPopUp: Locator;
     private readonly programName: Locator;
     private readonly duration: Locator;
-    private readonly modules: Locator;
     private readonly programDescription: Locator;
     private readonly makeThisProgramCheckbox: Locator;
     private readonly cancel: Locator;
@@ -29,7 +28,6 @@ export class CareProgramPage2 extends BasePage {
         this.createProgramPopUp = page.getByRole('dialog', { name: 'Create Program' });
         this.programName = page.getByRole('textbox', { name: 'Program Name *' });
         this.duration = page.locator(`//*[contains(text(),'Duration')]/following-sibling::input`);
-        this.modules = page.locator(`//*[contains(text(),'Total Module')]/following-sibling::input`);
         this.programDescription = page.getByRole('textbox', { name: 'describe the program' });
         this.makeThisProgramCheckbox = page.getByRole('checkbox', { name: 'Make this Program' });
         this.cancel = page.getByRole('button', { name: 'Cancel' });
@@ -74,7 +72,7 @@ export class CareProgramPage2 extends BasePage {
             if (await this.createProgramPopUp.isVisible()) {
                 await this.programName.fill(progName);
                 await this.duration.fill(duration);
-                await this.modules.fill('2');
+                // CareHub's Create Program form no longer has a "Total Module" field.
                 await this.programDescription.fill(modules);
                 await this.saveCreateProgram.click({ timeout: 5000 });
             }
