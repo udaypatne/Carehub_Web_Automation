@@ -810,7 +810,7 @@ test('verify 90 days of data for Sleep', async ({ healthUserListPage, userHealth
     const patientRegex = /^[A-Za-z]+(?: [A-Za-z]+)+$/;
     const dateRegex = /^(0[1-9]|1[0-2])[\/-](0[1-9]|[12]\d|3[01])[\/-]\d{4}$/;
     const sleepMetricRegex =
-        /^(?:awake_min|time_in_bed_min|rem_sleep_min|light_sleep_min|deep_sleep_min|sleep_duration_hrs)$/;
+        /^(?:awake_min|time_in_bed_min|rem_sleep_min|light_sleep_min|deep_sleep_min|sleep_duration_hrs|sleep_latency_min)$/;
     const valueRegex = /^\d+(?:\.\d+)?$/;
     const unitRegex = /^(?:min|hrs)$/;
     const dataRows = rows.slice(headerIndex + 1);
