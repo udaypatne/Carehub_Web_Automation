@@ -10,6 +10,7 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
         "Dashboard",
         "AI Voice Dashboard",
         "Work Queue",
+        "XLC Partner",
         "Patient List",
         "Health Passport",
         "Care Programs",
@@ -19,9 +20,7 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
         "Medication Adherence",
         "AI Guardrails",
         "Rewards Engine",
-        "Reward Milestones",
         "Care Team",
-        "Integrations",
         "Organization"
     ]
     await loginPage.login(process.env.ORG_ADMIN!, process.env.PASSWORD!)
@@ -36,7 +35,8 @@ test('Verify tab visibility for OrgAdmin staff role', async ({ loginPage, dashbo
 test('Verify tab visibility for Physician staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = ['Dashboard',
         "AI Voice Dashboard",
-        'Work Queue',
+        'Work Queue',,
+        "XLC Partner",
         'Patient List',
         'Health Passport',
         'Care Programs',
@@ -56,6 +56,7 @@ test('Verify tab visibility for Nurse staff role', async ({ loginPage, dashboard
     const menuItems = ['Dashboard',
         "AI Voice Dashboard",
         'Work Queue',
+        "XLC Partner",
         'Patient List',
         'Health Passport',
         'Care Programs',
@@ -75,14 +76,14 @@ test('Verify tab visibility for Carecoordinator staff role', async ({ loginPage,
     const menuItems = ['Dashboard',
         "AI Voice Dashboard",
         'Work Queue',
+        "XLC Partner",
         'Patient List',
         'Health Passport',
         'Care Programs',
         'Onboarding',
         "Medication Adherence",
         "AI Guardrails",
-        "Rewards Engine",
-        "Reward Milestones",
+        "Rewards Engine"
     ]
     await loginPage.login(process.env.CARECOORDINATOR_ROLE!, process.env.PASSWORD!)
     await page.waitForURL('/dashboard')
@@ -97,6 +98,7 @@ test('Verify tab visibility for Dietician staff role', async ({ loginPage, dashb
     const menuItems = ['Dashboard',
         "AI Voice Dashboard",
         'Work Queue',
+        "XLC Partner",
         'Patient List',
         'Health Passport',
         'Care Programs',
@@ -116,6 +118,7 @@ test('Verify tab visibility for Clinical staff role', async ({ loginPage, dashbo
         'Dashboard',
         "AI Voice Dashboard",
         'Work Queue',
+        "XLC Partner",
         'Patient List',
         'Health Passport',
         'Care Programs',
@@ -132,14 +135,13 @@ test('Verify tab visibility for Clinical staff role', async ({ loginPage, dashbo
 
 
 test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashboardPage, page }) => {
-    const menuItems = [
+    const menuItems = ["XLC Partner",
         "Care Programs",
         "Onboarding",
         "Population Health",
         "Custom Dashboards",
         "Medication Adherence",
-        "Rewards Engine",
-        "Reward Milestones",
+        "Rewards Engine"
     ]
     await loginPage.login(process.env.MARKETING_ROLE!, process.env.PASSWORD!)
     await page.waitForURL('/dashboard/population-health')
@@ -152,9 +154,9 @@ test('Verify tab visibility for Marketing staff role', async ({ loginPage, dashb
 
 test('Verify tab visibility for techAdmin staff role', async ({ loginPage, dashboardPage, page }) => {
     const menuItems = [
+        "XLC Partner",
         'AI Guardrails',
         'Care Team',
-        'Integrations',
         'Organization',
     ]
     await loginPage.login(process.env.TECHADMIN_ROLE!, process.env.PASSWORD!)
@@ -171,6 +173,7 @@ test('Verify tab visibility for Custom staff role', async ({ loginPage, dashboar
         "Dashboard",
         "AI Voice Dashboard",
         "Work Queue",
+        "XLC Partner",
         "Patient List",
         "Health Passport",
         "Care Programs",
@@ -180,9 +183,7 @@ test('Verify tab visibility for Custom staff role', async ({ loginPage, dashboar
         "Medication Adherence",
         "AI Guardrails",
         "Rewards Engine",
-        "Reward Milestones",
         "Care Team",
-        "Integrations",
         "Organization"
     ]
     await loginPage.login(process.env.CUSTOM_ROLE!, process.env.PASSWORD!)
