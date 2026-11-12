@@ -430,7 +430,7 @@ test('verify Weight csv for 90 days  ', async ({
         /^$|^\d+(\.\d{1,2})?$/;
 
     const sourceRegex =
-        /^(manual|health_connect|body_scan|ai_agent)$/;
+        /^(manual|health_connect|body_scan|ai_agent|voice_engagement)$/;
 
     const dataRows = rows.slice(headerIndex + 1);
 
