@@ -6,7 +6,7 @@ const userEmail = 'udaypatneit@gmail.com';
 
 test.beforeEach(async ({ loginPage, dashboardPage, page }) => {
     await loginPage.navToLoginPage();
-    loginPage.login(process.env.ORG_ADMIN!, process.env.PASSWORD!);
+    await loginPage.login(process.env.ORG_ADMIN!, process.env.PASSWORD!);
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
     await dashboardPage.selectTab('Health Passport');

@@ -96,6 +96,15 @@ jobs:
           DIETICIAN_ROLE: ${{ secrets.DIETICIAN_ROLE }}
           CARECOORDINATOR_ROLE: ${{ secrets.CARECOORDINATOR_ROLE }}
           NURSE_ROLE: ${{ secrets.NURSE_ROLE }}
+          ORG_ADMIN_TOTP_SECRET: ${{ secrets.ORG_ADMIN_TOTP_SECRET }}
+          PHYSICIAN_ROLE_TOTP_SECRET: ${{ secrets.PHYSICIAN_ROLE_TOTP_SECRET }}
+          NURSE_ROLE_TOTP_SECRET: ${{ secrets.NURSE_ROLE_TOTP_SECRET }}
+          CARECOORDINATOR_ROLE_TOTP_SECRET: ${{ secrets.CARECOORDINATOR_ROLE_TOTP_SECRET }}
+          DIETICIAN_ROLE_TOTP_SECRET: ${{ secrets.DIETICIAN_ROLE_TOTP_SECRET }}
+          CLINICAL_ROLE_TOTP_SECRET: ${{ secrets.CLINICAL_ROLE_TOTP_SECRET }}
+          MARKETING_ROLE_TOTP_SECRET: ${{ secrets.MARKETING_ROLE_TOTP_SECRET }}
+          TECHADMIN_ROLE_TOTP_SECRET: ${{ secrets.TECHADMIN_ROLE_TOTP_SECRET }}
+          CUSTOM_ROLE_TOTP_SECRET: ${{ secrets.CUSTOM_ROLE_TOTP_SECRET }}
 
 
       # ----------------------------------------------------------

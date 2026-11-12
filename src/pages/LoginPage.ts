@@ -1,5 +1,6 @@
 import { Locator, Page } from "@playwright/test";
 import { BasePage } from "./BasePage";
+import { freshTotp, totpSecretFor } from "../utils/totp";
 
 export class LoginPage extends BasePage {
 
@@ -14,6 +15,9 @@ export class LoginPage extends BasePage {
     private readonly skipBtn: Locator;
     private readonly doNotShowCheckbox: Locator;
     private readonly loginErrorMessage:Locator;
+    private readonly totpCode: Locator;
+    private readonly verifyBtn: Locator;
+    private readonly totpCodeError: Locator;
 
 
     constructor(page: Page) {
@@ -27,6 +31,9 @@ export class LoginPage extends BasePage {
         this.skipBtn = page.locator(`//body//div[contains(@class,'outline-none')]//button[@type='button' and contains(text(),'Skip')]`);
         this.doNotShowCheckbox = page.locator(`//div[contains(@class,'shadow')]//label[contains(@class,'flex')]/input[@type='checkbox']`).last();
         this.loginErrorMessage=this.page.getByText('Invalid email or password.', { exact: true });
+        this.totpCode = page.locator('#totp-code');
+        this.verifyBtn = page.getByRole('button', { name: 'Verify & sign in' });
+        this.totpCodeError = page.locator('#totp-code-error');
     }
 
     async navToLoginPage(): Promise<void> {
@@ -47,11 +54,41 @@ export class LoginPage extends BasePage {
         if (await this.loginBtn.isEnabled()) {
             await this.loginBtn.click();
             console.log("Login button clicked");
+            await this.completeTwoFactorIfAsked(username);
         } else {
             console.log("Login button is disabled");
         }
         await this.signedInSuccessMsg.isVisible();
     }
+
+    // CareHub staff 2FA (XSPAN-9002). After the password, CareHub signs in, shows
+    // an error, or asks for the authenticator code. Answer the code from the
+    // account's TOTP secret; every other outcome is left to the caller as before.
+    private async completeTwoFactorIfAsked(username: string): Promise<void> {
+        // filter({ visible }): wait for whichever outcome SHOWS, not the first match
+        // in the DOM, which may be a hidden element that never becomes visible.
+        await this.totpCode.or(this.signedInSuccessMsg).or(this.loginErrorMessage)
+            .filter({ visible: true }).first().waitFor({ timeout: 20_000 }).catch(() => { });
+        if (this.page.url().includes('/provider/mfa-setup')) {
+            throw new Error(
+                "This account has no authenticator app set up. Set it up by hand once " +
+                "(not in a test run, which would record the key) and save its key as <ROLE>_TOTP_SECRET.",
+            );
+        }
+        if (!(await this.totpCode.isVisible())) return;
+
+        await this.totpCode.fill(await freshTotp(totpSecretFor(username)));
+        await this.verifyBtn.click();
+        await this.totpCodeError.or(this.signedInSuccessMsg)
+            .filter({ visible: true }).first().waitFor({ timeout: 20_000 }).catch(() => { });
+        if (await this.totpCodeError.isVisible()) {
+            throw new Error(
+                `CareHub rejected the 2FA code ("${await this.totpCodeError.innerText()}"). ` +
+                "Check the TOTP secret, and that this Mac's clock is set automatically.",
+            );
+        }
+    }
+
     async disableTutorial(): Promise<void> {
         await this.page.waitForTimeout(3000);
         if (await this.nextBtn.isVisible()) {

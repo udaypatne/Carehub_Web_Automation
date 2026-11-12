@@ -10,7 +10,7 @@ async function navigateOnProgramPage(careProgramPage2: any) {
 
 test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
     await loginPage.navToLoginPage();
-    loginPage.login(process.env.ORG_ADMIN!, 'Test@123');
+    await loginPage.login(process.env.ORG_ADMIN!, 'Test@123');
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
     await careProgramPage2.selectTab('Care Programs');

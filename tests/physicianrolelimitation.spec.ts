@@ -4,7 +4,7 @@ import { test, expect } from '../src/fixtures/page'
 
 test.beforeEach(async ({loginPage, page }) => {
     await loginPage.navToLoginPage();
-    loginPage.login(process.env.PHYSICIAN_ROLE!, process.env.PASSWORD!);
+    await loginPage.login(process.env.PHYSICIAN_ROLE!, process.env.PASSWORD!);
     await page.waitForURL('/dashboard')
     await loginPage.disableTutorial();
 })
