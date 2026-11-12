@@ -27,6 +27,12 @@ export function authFile(role: string): string {
 export async function openSignedIn(page: Page, url = "/dashboard"): Promise<void> {
     await page.goto(url);
     await waitUntilSignedIn(page);
+    // CareHub signs out after 15 min without activity (useIdleLogout), checking
+    // every 30 s, and the sign-out ends the session on the server for every test
+    // sharing it. A saved session carries the activity time from when it was
+    // saved, so register this test's use of the page as activity, the way a
+    // user's first click would; CareHub's own handler records it.
+    await page.mouse.move(1, 1);
 }
 
 /**
@@ -42,7 +48,7 @@ export async function waitUntilSignedIn(page: Page): Promise<void> {
     if (await signInButton.isVisible()) {
         throw new Error(
             "Not signed in: CareHub showed its sign-in page. If this was a saved session, it has " +
-            "ended: delete playwright/.auth/ and run again to sign in afresh.",
+            "ended (CareHub signs out after 15 min idle): delete playwright/.auth/ and run again to sign in afresh.",
         );
     }
 }
