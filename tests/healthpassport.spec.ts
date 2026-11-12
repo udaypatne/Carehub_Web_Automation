@@ -1,13 +1,15 @@
 import { test, expect } from '../src/fixtures/page'
 import path from 'path';
 import fs from 'fs';
+import { authFile, openSignedIn } from '../src/utils/authState'
 
 const userEmail = 'udaypatneit@gmail.com';
 
+// Starts signed in as ORG_ADMIN (session saved by tests/auth.setup.ts).
+test.use({ storageState: authFile('ORG_ADMIN') });
+
 test.beforeEach(async ({ loginPage, dashboardPage, page }) => {
-    await loginPage.navToLoginPage();
-    await loginPage.login(process.env.ORG_ADMIN!, process.env.PASSWORD!);
-    await page.waitForURL('/dashboard')
+    await openSignedIn(page);
     await loginPage.disableTutorial();
     await dashboardPage.selectTab('Health Passport');
 

@@ -1,4 +1,7 @@
-import { createHmac } from "crypto";
+import { createHash, createHmac } from "crypto";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
 // CareHub staff 2FA is Firebase TOTP (RFC 6238): SHA-1, 6 digits, 30-second steps.
 const STEP_MS = 30_000;
@@ -48,6 +51,64 @@ export async function freshTotp(secret: string): Promise<string> {
     const wait = msToWaitForFreshCode();
     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     return totp(secret);
+}
+
+export interface ClaimOptions {
+    /** Where claims are kept. Default: $TOTP_CLAIM_DIR, else a folder in the OS temp dir. */
+    dir?: string;
+    now?: () => number;
+    sleep?: (ms: number) => Promise<void>;
+    /** Told how long it is about to wait, so the caller can add that to its timeout. */
+    onWait?: (ms: number) => void;
+}
+
+/**
+ * A code for `account` that no other test worker on this machine has typed.
+ *
+ * CareHub accepts each code ONCE per account. Workers signing in as the same
+ * account in the same 30-second window compute the same code, and all but the
+ * first are refused ("That code didn't match"). So each worker first claims the
+ * window with an exclusive-create file; one that finds the window taken waits
+ * for the next. Another computer, or CI, signing in as the same account at the
+ * same moment can still collide: the claims are only seen on this machine.
+ */
+export async function claimTotp(secret: string, account: string, opts: ClaimOptions = {}): Promise<string> {
+    const dir = opts.dir ?? process.env.TOTP_CLAIM_DIR ?? path.join(os.tmpdir(), "carehub-totp-claims");
+    const now = opts.now ?? Date.now;
+    const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+    const wait = async (ms: number) => {
+        opts.onWait?.(ms);
+        await sleep(ms);
+    };
+    // Hashed: the account's email is never written to disk.
+    const id = createHash("sha256").update(account.trim().toLowerCase()).digest("hex").slice(0, 16);
+    fs.mkdirSync(dir, { recursive: true });
+
+    for (;;) {
+        const fresh = msToWaitForFreshCode(now());
+        if (fresh > 0) await wait(fresh);
+        const step = Math.floor(now() / STEP_MS);
+        let claimed = false;
+        try {
+            fs.writeFileSync(path.join(dir, `${id}-${step}`), "", { flag: "wx" });
+            claimed = true;
+        } catch (e) {
+            if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+        }
+        if (claimed) {
+            pruneClaims(dir, step);
+            return totp(secret, step * STEP_MS);
+        }
+        await wait(STEP_MS - (now() % STEP_MS) + 250);
+    }
+}
+
+/** Drops claims more than ~10 minutes old, for every account. */
+function pruneClaims(dir: string, step: number): void {
+    for (const name of fs.readdirSync(dir)) {
+        const claimStep = Number(name.split("-")[1]);
+        if (claimStep < step - 20) fs.rmSync(path.join(dir, name), { force: true });
+    }
 }
 
 /**

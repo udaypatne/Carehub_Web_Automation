@@ -1,6 +1,10 @@
 import { test, expect } from '../src/fixtures/page';
 import fs from 'fs';
 import path from 'path';
+import { authFile, openSignedIn } from '../src/utils/authState';
+
+// Starts signed in as ORG_ADMIN (session saved by tests/auth.setup.ts).
+test.use({ storageState: authFile('ORG_ADMIN') });
 
 const userEmail = 'udaypatneit@gmail.com';
 
@@ -48,13 +52,7 @@ test.describe.serial('Water Intake - 90 Days CSV', () => {
         page
     }) => {
 
-        await loginPage.navToLoginPage();
-
-        await loginPage.login(
-            process.env.ORG_ADMIN!,
-            process.env.PASSWORD!
-        );
-        await page.waitForURL('/dashboard');
+        await openSignedIn(page);
         await loginPage.disableTutorial();
         await dashboardPage.selectTab('Health Passport');
     });

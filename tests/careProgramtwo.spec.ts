@@ -1,5 +1,9 @@
 
 import { test, expect } from "../src/fixtures/programFixture"
+import { authFile, openSignedIn } from "../src/utils/authState"
+
+// Starts signed in as ORG_ADMIN (session saved by tests/auth.setup.ts).
+test.use({ storageState: authFile('ORG_ADMIN') });
 
 let CareProgName = 'Automation'
 
@@ -9,9 +13,7 @@ async function navigateOnProgramPage(careProgramPage2: any) {
 }
 
 test.beforeEach(async ({ loginPage, careProgramPage2, page }) => {
-    await loginPage.navToLoginPage();
-    await loginPage.login(process.env.ORG_ADMIN!, 'Test@123');
-    await page.waitForURL('/dashboard')
+    await openSignedIn(page);
     await loginPage.disableTutorial();
     await careProgramPage2.selectTab('Care Programs');
     await page.waitForLoadState('load');

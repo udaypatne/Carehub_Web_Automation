@@ -1,6 +1,6 @@
-import { Locator, Page } from "@playwright/test";
+import { Locator, Page, test } from "@playwright/test";
 import { BasePage } from "./BasePage";
-import { freshTotp, totpSecretFor } from "../utils/totp";
+import { claimTotp, totpSecretFor } from "../utils/totp";
 
 export class LoginPage extends BasePage {
 
@@ -18,6 +18,7 @@ export class LoginPage extends BasePage {
     private readonly totpCode: Locator;
     private readonly verifyBtn: Locator;
     private readonly totpCodeError: Locator;
+    private readonly notifications: Locator;
 
 
     constructor(page: Page) {
@@ -34,6 +35,8 @@ export class LoginPage extends BasePage {
         this.totpCode = page.locator('#totp-code');
         this.verifyBtn = page.getByRole('button', { name: 'Verify & sign in' });
         this.totpCodeError = page.locator('#totp-code-error');
+        // CareHub's toasts, e.g. "Firebase: Exceeded quota. (auth/quota-exceeded)."
+        this.notifications = page.getByRole('region', { name: /^Notifications/ });
     }
 
     async navToLoginPage(): Promise<void> {
@@ -84,14 +87,28 @@ export class LoginPage extends BasePage {
         }
         if (!(await this.totpCode.isVisible())) return;
 
-        await this.totpCode.fill(await freshTotp(totpSecretFor(username)));
+        // CareHub refuses a code another worker already typed for this account, so
+        // claim a 30-second window of our own; any wait is added to the test's timeout.
+        await this.totpCode.fill(await claimTotp(totpSecretFor(username), username, { onWait: extendTestTimeout }));
         await this.verifyBtn.click();
-        await this.totpCodeError.or(this.signedInSuccessMsg)
-            .filter({ visible: true }).first().waitFor({ timeout: 20_000 }).catch(() => { });
+        // Settled when CareHub shows a code error or leaves the code page.
+        await Promise.race([
+            this.totpCodeError.waitFor({ state: 'visible', timeout: 20_000 }),
+            this.totpCode.waitFor({ state: 'hidden', timeout: 20_000 }),
+        ].map((settled) => settled.catch(() => { })));
         if (await this.totpCodeError.isVisible()) {
             throw new Error(
                 `CareHub rejected the 2FA code ("${await this.totpCodeError.innerText()}"). ` +
                 "Check the TOTP secret, and that this Mac's clock is set automatically.",
+            );
+        }
+        if (await this.totpCode.isVisible()) {
+            // Fail now with CareHub's own message, not 80 s later at waitForURL.
+            const notice = (await this.notifications.innerText({ timeout: 1_000 }).catch(() => '')).trim();
+            throw new Error(
+                "CareHub did not sign in after the 2FA code: still on the code page after 20 s" +
+                (notice ? ` ("${notice.slice(0, 200)}")` : "") +
+                ". auth/quota-exceeded means Firebase is limiting sign-ins: wait a few minutes, then run again.",
             );
         }
     }
@@ -109,4 +126,15 @@ export class LoginPage extends BasePage {
     }
 
 
+}
+
+/** Gives the running test `ms` more time. Outside a test (the set-up script) does nothing. */
+function extendTestTimeout(ms: number): void {
+    let info;
+    try {
+        info = test.info();
+    } catch {
+        return;
+    }
+    if (info.timeout > 0) info.setTimeout(info.timeout + ms);
 }

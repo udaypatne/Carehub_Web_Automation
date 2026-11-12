@@ -15,6 +15,11 @@ export class DashboardPage extends BasePage {
         return await this.menuTabs.allInnerTexts();
     }
 
+    /** The first sidebar tab: CareHub shows it once the user is signed in. */
+    firstMenuTab(): Locator {
+        return this.menuTabs.first();
+    }
+
     async selectTab(tabName: string): Promise<void> {
     await this.page.locator(
         `//*[contains(@class,'flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pr-1')]//a[contains(@class,'flex')]//span[normalize-space()='${tabName}']`

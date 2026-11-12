@@ -1,11 +1,11 @@
 import { test, expect } from '../src/fixtures/page'
+import { authFile, openSignedIn } from '../src/utils/authState'
 
-
+// Starts signed in as PHYSICIAN_ROLE (session saved by tests/auth.setup.ts).
+test.use({ storageState: authFile('PHYSICIAN_ROLE') });
 
 test.beforeEach(async ({loginPage, page }) => {
-    await loginPage.navToLoginPage();
-    await loginPage.login(process.env.PHYSICIAN_ROLE!, process.env.PASSWORD!);
-    await page.waitForURL('/dashboard')
+    await openSignedIn(page);
     await loginPage.disableTutorial();
 })
 

@@ -39,9 +39,18 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Signs each role in once and saves the session (tests/auth.setup.ts), so
+    // tests start signed in. No screenshots, video or trace: if an account's 2FA
+    // was reset, CareHub's set-up page shows its key.
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices['Desktop Chrome'], screenshot: 'off', video: 'off', trace: 'off' },
+    },
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
 
     //  {

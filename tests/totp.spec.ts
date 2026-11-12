@@ -1,5 +1,7 @@
+import fs from 'fs';
+import path from 'path';
 import { test, expect } from '@playwright/test';
-import { msToWaitForFreshCode, normalizeTotpKey, totp, totpSecretFor } from '../src/utils/totp';
+import { claimTotp, msToWaitForFreshCode, normalizeTotpKey, totp, totpSecretFor } from '../src/utils/totp';
 
 // RFC 6238 appendix B, SHA-1: the ASCII key "12345678901234567890" in base32.
 // A published test vector, not a real account's key.
@@ -109,4 +111,84 @@ test.describe('normalizeTotpKey()', () => {
             if (raw.trim()) expect(String(caught)).not.toContain(raw.trim());
         });
     }
+});
+
+test.describe('claimTotp()', () => {
+    // CareHub accepts each code once per account, so parallel workers must never
+    // type the same code for the same account. A fake clock: no real waiting.
+    const windowStart = 30_000 * 1000;
+
+    function fakeClock(start: number) {
+        let t = start;
+        const waits: number[] = [];
+        return {
+            waits,
+            opts: (dir: string) => ({
+                dir,
+                now: () => t,
+                sleep: async (ms: number) => { t += ms; },
+                onWait: (ms: number) => { waits.push(ms); },
+            }),
+        };
+    }
+
+    test("first claim in a window: that window's code, no wait", async ({}, testInfo) => {
+        const clock = fakeClock(windowStart + 1_000);
+        const code = await claimTotp(RFC_SECRET, 'a@example.test', clock.opts(testInfo.outputPath('claims')));
+        expect(code).toBe(totp(RFC_SECRET, windowStart));
+        expect(clock.waits).toEqual([]);
+    });
+
+    test('same account again in the same window: waits for the next window, gets a different code', async ({}, testInfo) => {
+        const clock = fakeClock(windowStart + 1_000);
+        const opts = clock.opts(testInfo.outputPath('claims'));
+        const first = await claimTotp(RFC_SECRET, 'a@example.test', opts);
+        const second = await claimTotp(RFC_SECRET, 'a@example.test', opts);
+        expect(second).toBe(totp(RFC_SECRET, windowStart + 30_000));
+        expect(second).not.toBe(first);
+        expect(clock.waits).toEqual([29_000 + 250]);
+    });
+
+    test('the same account written differently (case, spaces) is still the same account', async ({}, testInfo) => {
+        const clock = fakeClock(windowStart + 1_000);
+        const opts = clock.opts(testInfo.outputPath('claims'));
+        await claimTotp(RFC_SECRET, 'a@example.test', opts);
+        await claimTotp(RFC_SECRET, ' A@Example.TEST ', opts);
+        expect(clock.waits).toHaveLength(1);
+    });
+
+    test('different accounts in the same window do not wait for each other', async ({}, testInfo) => {
+        const clock = fakeClock(windowStart + 1_000);
+        const opts = clock.opts(testInfo.outputPath('claims'));
+        await claimTotp(RFC_SECRET, 'a@example.test', opts);
+        await claimTotp(RFC_SECRET, 'b@example.test', opts);
+        expect(clock.waits).toEqual([]);
+    });
+
+    test('under 3 s left in the window: waits for the next one before claiming', async ({}, testInfo) => {
+        const clock = fakeClock(windowStart + 28_000);
+        const code = await claimTotp(RFC_SECRET, 'a@example.test', clock.opts(testInfo.outputPath('claims')));
+        expect(code).toBe(totp(RFC_SECRET, windowStart + 30_000));
+        expect(clock.waits).toEqual([2_000 + 250]);
+    });
+
+    test("claim files never contain the account's email", async ({}, testInfo) => {
+        const dir = testInfo.outputPath('claims');
+        await claimTotp(RFC_SECRET, 'someone@example.test', fakeClock(windowStart + 1_000).opts(dir));
+        const names = fs.readdirSync(dir);
+        expect(names).toHaveLength(1);
+        expect(names[0]).not.toMatch(/someone|example|@/);
+    });
+
+    test('claims older than ~10 minutes are cleaned up; recent ones are kept', async ({}, testInfo) => {
+        const dir = testInfo.outputPath('claims');
+        fs.mkdirSync(dir, { recursive: true });
+        const step = windowStart / 30_000;
+        fs.writeFileSync(path.join(dir, `0000000000000000-${step - 21}`), '');
+        fs.writeFileSync(path.join(dir, `0000000000000000-${step - 1}`), '');
+        await claimTotp(RFC_SECRET, 'a@example.test', fakeClock(windowStart + 1_000).opts(dir));
+        const names = fs.readdirSync(dir);
+        expect(names).not.toContain(`0000000000000000-${step - 21}`);
+        expect(names).toContain(`0000000000000000-${step - 1}`);
+    });
 });

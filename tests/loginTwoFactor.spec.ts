@@ -6,7 +6,8 @@ import { totp } from '../src/utils/totp';
 // so these run offline and never touch QA. The fake copies the real page's
 // fields (xspan-provider-portal-web ProviderLogin.tsx): #totp-code,
 // "Verify & sign in", #totp-code-error, and /provider/mfa-setup when the
-// account has no authenticator app. Synthetic accounts and keys only.
+// account has no authenticator app. Like CareHub, it accepts each code once.
+// Synthetic accounts and keys only.
 
 const ORIGIN = 'https://carehub.test';
 const SECRET = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP'; // synthetic
@@ -24,13 +25,14 @@ const FAKE_LOGIN_PAGE = `<!doctype html><html><body>
   <button type="button" id="verify">Verify & sign in</button>
 </div>
 <div id="out"></div>
+<section aria-label="Notifications alt+T"><ol id="toasts"></ol></section>
 <script>
   const $ = (id) => document.getElementById(id);
   const signedIn = () => { $('mfa').hidden = true; $('out').textContent = 'Signed in successfully.'; };
   $('go').onclick = () => {
     const email = $('email').value;
     $('signin').hidden = true;
-    if (email.startsWith('mfa')) { $('mfa').hidden = false; return; }
+    if (email.startsWith('mfa') || email.startsWith('stuck')) { $('mfa').hidden = false; return; }
     if (email.startsWith('nomfa')) { signedIn(); return; }
     if (email.startsWith('unenrolled')) {
       history.pushState({}, '', '/provider/mfa-setup');
@@ -41,21 +43,31 @@ const FAKE_LOGIN_PAGE = `<!doctype html><html><body>
     $('out').textContent = 'Invalid email or password.';
   };
   $('verify').onclick = async () => {
+    if ($('email').value.startsWith('stuck')) {
+      // What QA showed under load: a toast, and the code page stays up.
+      $('toasts').innerHTML = '<li>Firebase: Exceeded quota. (auth/quota-exceeded).</li>';
+      return;
+    }
     const res = await fetch('/verify', { method: 'POST', body: $('totp-code').value });
     if (res.ok) { signedIn(); return; }
     $('err').innerHTML = '<span id="totp-code-error" role="alert">That code is not valid.</span>';
   };
 </script></body></html>`;
 
-/** Serves the fake page and records every code it is sent. */
-async function serveFakeCareHub(page: Page): Promise<string[]> {
+/**
+ * Serves the fake page and records every code it is sent. `used` is the codes
+ * already accepted: share one between pages signing in as the same account.
+ */
+async function serveFakeCareHub(page: Page, used: Set<string> = new Set()): Promise<string[]> {
     const received: string[] = [];
     await page.route(`${ORIGIN}/**`, async (route) => {
         const url = new URL(route.request().url());
         if (url.pathname === '/verify') {
             const code = route.request().postData() ?? '';
             received.push(code);
-            await route.fulfill({ status: code === totp(SECRET) ? 200 : 400 });
+            const ok = code === totp(SECRET) && !used.has(code);
+            if (ok) used.add(code);
+            await route.fulfill({ status: ok ? 200 : 400 });
             return;
         }
         await route.fulfill({ contentType: 'text/html', body: FAKE_LOGIN_PAGE });
@@ -70,9 +82,16 @@ function setRoleEnv(email: string, secret: string | undefined): void {
     else process.env.TWOFA_TEST_ROLE_TOTP_SECRET = secret;
 }
 
+// Each test claims codes in its own folder, so tests never wait on each other
+// or on a real run's claims.
+test.beforeEach(({}, testInfo) => {
+    process.env.TOTP_CLAIM_DIR = testInfo.outputPath('totp-claims');
+});
+
 test.afterEach(() => {
     delete process.env.TWOFA_TEST_ROLE;
     delete process.env.TWOFA_TEST_ROLE_TOTP_SECRET;
+    delete process.env.TOTP_CLAIM_DIR;
 });
 
 test('2FA asked: types the current code from the role secret and signs in', async ({ page }) => {
@@ -138,4 +157,39 @@ test('wrong password: returns promptly and leaves the error for the test to chec
 
     expect(Date.now() - started).toBeLessThan(5_000);
     expect(await loginPage.isLoginErrorDisplayed()).toBe(true);
+});
+
+// Regression: parallel workers signing in as one account in the same 30 s typed
+// the same code, and CareHub refused all but the first ("That code didn't match").
+// Takes up to ~30 s: the second sign-in waits for the next window.
+test('two sign-ins as the same account at once: both get in, with different codes', async ({ browser }) => {
+    const used = new Set<string>();
+    setRoleEnv('mfa-pair@example.test', SECRET);
+    const pages = [await browser.newPage(), await browser.newPage()];
+    const received = await Promise.all(pages.map((p) => serveFakeCareHub(p, used)));
+    const timeoutBefore = test.info().timeout;
+
+    await Promise.all(pages.map((p) => new LoginPage(p).login('mfa-pair@example.test', 'synthetic-password')));
+
+    for (const p of pages) await expect(p.getByText('Signed in successfully')).toBeVisible();
+    const codes = received.flat();
+    expect(codes).toHaveLength(2);
+    expect(codes[0]).not.toBe(codes[1]);
+    // The wait for a fresh code is added to the test's timeout, not taken from it.
+    expect(test.info().timeout).toBeGreaterThan(timeoutBefore);
+    await Promise.all(pages.map((p) => p.close()));
+});
+
+// Regression: under load QA showed "auth/quota-exceeded" and stayed on the code
+// page; the test then sat at waitForURL('/dashboard') until its 80 s timeout.
+test('CareHub stays on the code page (quota exceeded): fails within ~20 s with its notice', async ({ page }) => {
+    await serveFakeCareHub(page);
+    setRoleEnv('stuck@example.test', SECRET);
+
+    const started = Date.now();
+    const error = await new LoginPage(page).login('stuck@example.test', 'synthetic-password').catch((e) => e);
+
+    expect(String(error)).toContain('did not sign in after the 2FA code');
+    expect(String(error)).toContain('auth/quota-exceeded');
+    expect(Date.now() - started).toBeLessThan(30_000);
 });
